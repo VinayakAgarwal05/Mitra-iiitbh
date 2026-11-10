@@ -156,7 +156,13 @@ export const AdminDashboardPage: React.FC = () => {
   const handleUpdateBookingStatus = async (id: string, status: string) => {
     try {
       await api.patch(`/admin/bookings/${id}`, { status });
-      setNotification({ type: 'success', message: `Reservation record marked as ${status}.` });
+      setNotification({
+        type: 'success',
+        message:
+          status === 'approved'
+            ? 'Reservation approved! This facility slot is now officially confirmed and displayed on the College Calendar.'
+            : 'Reservation request has been rejected.',
+      });
       fetchBookings();
       fetchOverview();
     } catch (err: any) {

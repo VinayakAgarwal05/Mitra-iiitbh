@@ -369,11 +369,18 @@ export const SlotBookingPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="my-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300">
-              <p className="font-semibold">{activeSlot.facility_or_club}</p>
-              <p className="mt-0.5 text-slate-500 font-mono">
-                Date: {activeSlot.slot_date} • Timing: {activeSlot.start_time} - {activeSlot.end_time}
-              </p>
+            <div className="my-3 space-y-2">
+              <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300">
+                <p className="font-semibold text-slate-900 dark:text-white">{activeSlot.facility_or_club}</p>
+                <p className="mt-0.5 text-slate-500 font-mono">
+                  Date: {activeSlot.slot_date} • Timing: {activeSlot.start_time} - {activeSlot.end_time}
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 text-[11px] text-blue-900 dark:text-blue-200 flex items-start gap-2">
+                <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                <span>Submitting this form dispatches a formal reservation request to Institute Administration. Once reviewed and approved, this slot will be confirmed and displayed on the College Calendar.</span>
+              </div>
             </div>
 
             <form onSubmit={handleBookingSubmit} className="space-y-3.5">
@@ -430,9 +437,9 @@ export const SlotBookingPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-1.5 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-semibold text-xs disabled:opacity-50"
+                  className="btn-tactile px-4 py-1.5 rounded-lg bg-brand-800 hover:bg-brand-900 text-white font-semibold text-xs disabled:opacity-50 flex items-center gap-1.5 shadow-xs"
                 >
-                  {submitting ? 'Submitting...' : 'Submit Request'}
+                  {submitting ? 'Submitting to Admin...' : 'Submit Request to Admin'}
                 </button>
               </div>
             </form>

@@ -402,5 +402,26 @@ describe('COLLEGE CONNECT — Full-Stack Verification Test Suite', () => {
       expect(res.body.metrics.totalStudents).toBeGreaterThan(0);
       expect(res.body.metrics.activeRooms).toBeGreaterThanOrEqual(12);
     });
+
+    it('Authorized Admin should be able to approve pending slot booking and have it updated on the calendar', async () => {
+      const pendingBooking = await db('bookings').where({ status: 'pending' }).first();
+      expect(pendingBooking).toBeDefined();
+
+      const approveRes = await request(app)
+        .patch(`/api/admin/bookings/${pendingBooking.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ status: 'approved', reviewer_notes: 'Approved for official club activity' });
+
+      expect(approveRes.status).toBe(200);
+
+      const eventsRes = await request(app)
+        .get('/api/events')
+        .set('Authorization', `Bearer ${studentToken}`);
+
+      expect(eventsRes.status).toBe(200);
+      const calendarEvent = eventsRes.body.find((e: any) => e.id === `booking-${pendingBooking.id}`);
+      expect(calendarEvent).toBeDefined();
+      expect(calendarEvent.title).toContain('[Booked Slot]');
+    });
   });
 });

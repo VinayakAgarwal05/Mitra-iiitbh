@@ -162,16 +162,18 @@ function handleDemoFallback(config: any): any {
       slot_date: slot.slot_date,
       start_time: slot.start_time,
       end_time: slot.end_time,
-      status: 'approved',
+      student_name: 'Aarav Sharma',
+      student_email: 'student1@college.edu',
+      status: 'pending', // Submits formal request to administration for approval
       created_at: new Date().toISOString(),
     };
 
-    customBookings.push(newBooking);
+    customBookings.unshift(newBooking);
     localStorage.setItem('demo_user_bookings', JSON.stringify(customBookings));
 
     return Promise.resolve({
       data: {
-        message: 'Slot booked successfully! This reservation is now updated on the Interactive Calendar.',
+        message: 'Booking request submitted successfully! A notification has been sent to the Administration for review. Once approved, it will be officially confirmed on the College Calendar.',
         booking: newBooking,
       },
       status: 201,
@@ -231,19 +233,60 @@ function handleDemoFallback(config: any): any {
     });
   }
 
-  // 11. ADMIN DASHBOARD (/admin/dashboard)
+  // 11. ADMIN DASHBOARD & BOOKING APPROVALS (/admin)
   if (url.startsWith('/admin')) {
+    // Admin review of booking requests
+    if (url.includes('/admin/bookings') && method === 'get') {
+      const customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+      const seedAdminBookings = [
+        {
+          id: 'demo-seed-bkg-1',
+          club_or_society: 'Robotics Society',
+          purpose: 'Autonomous Rover Testing',
+          description: 'Testing autonomous navigation sensors in the lab.',
+          facility_or_club: 'Robotics & IoT Innovation Lab',
+          slot_date: '2026-11-14',
+          start_time: '14:00',
+          end_time: '17:00',
+          student_name: 'Aarav Sharma',
+          student_email: 'student1@college.edu',
+          status: 'pending',
+          created_at: new Date(Date.now() - 3600000).toISOString(),
+        },
+      ];
+      const combined = [...customBookings, ...seedAdminBookings];
+      return Promise.resolve({ data: combined, status: 200 });
+    }
+
+    // Admin approve / reject action
+    if (url.includes('/admin/bookings/') && method === 'patch') {
+      const parts = url.split('/');
+      const bookingId = parts[parts.length - 1];
+      const customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+      const updated = customBookings.map((b: any) =>
+        b.id === bookingId ? { ...b, status: body.status || 'approved' } : b
+      );
+      localStorage.setItem('demo_user_bookings', JSON.stringify(updated));
+      return Promise.resolve({
+        data: { message: `Booking reservation request marked as ${body.status || 'approved'}. Calendar has been updated.` },
+        status: 200,
+      });
+    }
+
+    const customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+    const pendingCount = customBookings.filter((b: any) => b.status === 'pending').length + 1;
+
     return Promise.resolve({
       data: {
         totalStudents: 852,
         verifiedStudents: 846,
         activeCareerRooms: 12,
-        pendingBookings: 2,
+        pendingBookings: pendingCount,
         openIssues: 5,
         totalMaterials: 64,
         recentAudits: [
           { id: '1', action: 'USER_LOGIN', details: 'admin@iiitbh.ac.in', created_at: new Date().toISOString() },
-          { id: '2', action: 'BOOKING_APPROVED', details: 'Robotics Club', created_at: new Date(Date.now() - 1200000).toISOString() },
+          { id: '2', action: 'BOOKING_REQUEST_RECEIVED', details: 'Robotics Society', created_at: new Date(Date.now() - 1200000).toISOString() },
         ],
       },
       status: 200,
