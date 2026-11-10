@@ -9,11 +9,12 @@ import {
   Filter,
   AlertTriangle,
   Clock,
-  Sparkles,
   ChevronDown,
-  ChevronUp,
   AlertCircle,
   CheckCircle,
+  Lock,
+  Tag,
+  Share2,
 } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -86,7 +87,7 @@ export const StudentConnectPage: React.FC = () => {
                 return {
                   ...p,
                   replies: [...p.replies, incoming],
-                  replies_count: p.replies_count + 1,
+                  replies_count: (p.replies_count || 0) + 1,
                 };
               }
               return p;
@@ -135,7 +136,7 @@ export const StudentConnectPage: React.FC = () => {
       setNewTags('');
       setRemainingDailyMessages(res.data.remainingDailyMessages);
       await refreshUser();
-      setNotification({ type: 'success', message: 'Discussion posted anonymously.' });
+      setNotification({ type: 'success', message: 'Discussion thread initiated successfully.' });
     } catch (err: any) {
       setNotification({
         type: 'error',
@@ -171,8 +172,8 @@ export const StudentConnectPage: React.FC = () => {
           if (p.id === parentId) {
             return {
               ...p,
-              replies: [...p.replies, res.data.post],
-              replies_count: p.replies_count + 1,
+              replies: [...(p.replies || []), res.data.post],
+              replies_count: (p.replies_count || 0) + 1,
             };
           }
           return p;
@@ -203,14 +204,14 @@ export const StudentConnectPage: React.FC = () => {
       });
       setNotification({
         type: 'success',
-        message: 'Message reported to campus administrators for review.',
+        message: 'Message reported to administrative proctorial committee.',
       });
       setReportTargetId(null);
       setReportReason('');
     } catch (err: any) {
       setNotification({
         type: 'error',
-        message: err.response?.data?.error || 'Report failed.',
+        message: err.response?.data?.error || 'Report submission failed.',
       });
     }
   };
@@ -226,31 +227,32 @@ export const StudentConnectPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 max-w-4xl mx-auto animate-fadeIn">
+      {/* Page Header */}
+      <div className="border-b border-slate-200/80 dark:border-slate-800/80 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 text-teal-600 dark:text-teal-400" />
-            Student Connect (Anonymous Feed)
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300 uppercase tracking-wider mb-1">
+            <Lock className="w-3.5 h-3.5" />
+            <span>Anonymous Academic Intranet Board</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Student Connect
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Connect across batches, ask seniors, and exchange guidance with complete identity privacy.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
+            Cross-batch student exchange, project collaborations, and senior guidance. All communications preserve complete individual privacy while upholding campus conduct standards.
           </p>
         </div>
 
-        {/* Daily limit badge */}
-        <div className="px-4 py-2 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center gap-3">
-          <div>
-            <p className="text-[11px] font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wider">
-              Daily Message Limit
-            </p>
-            <p className="text-xs text-slate-600 dark:text-slate-300">
-              Allowance:{' '}
-              <span className="font-bold text-blue-600 dark:text-blue-400 font-mono">
-                {remainingDailyMessages} / 10 left
-              </span>
-            </p>
+        {/* Quota tracker */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-xl p-3 text-right shrink-0 shadow-xs">
+          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            Daily Message Quota
+          </div>
+          <div className="text-sm font-semibold text-slate-900 dark:text-white mt-0.5">
+            <span className="font-mono text-brand-700 dark:text-brand-400 font-bold">
+              {remainingDailyMessages}
+            </span>
+            <span className="text-slate-400"> / 10 remaining</span>
           </div>
         </div>
       </div>
@@ -258,264 +260,299 @@ export const StudentConnectPage: React.FC = () => {
       {/* Notification Banner */}
       {notification && (
         <div
-          className={`p-4 rounded-xl flex items-center gap-2 text-sm ${
+          className={`p-4 rounded-lg flex items-center justify-between text-xs font-medium border ${
             notification.type === 'success'
-              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-              : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+              ? 'bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800'
+              : 'bg-rose-50 text-rose-900 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800'
           }`}
         >
-          {notification.type === 'success' ? (
-            <CheckCircle className="w-4 h-4 shrink-0" />
-          ) : (
-            <AlertCircle className="w-4 h-4 shrink-0" />
-          )}
-          <span>{notification.message}</span>
-          <button onClick={() => setNotification(null)} className="ml-auto text-xs opacity-70 hover:opacity-100">
+          <div className="flex items-center gap-2">
+            {notification.type === 'success' ? (
+              <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            ) : (
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
+            )}
+            <span>{notification.message}</span>
+          </div>
+          <button
+            onClick={() => setNotification(null)}
+            className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-xs ml-4"
+          >
             Dismiss
           </button>
         </div>
       )}
 
       {/* New Post Creator Box */}
-      <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="flex items-center gap-2 mb-3 text-xs font-semibold text-slate-700 dark:text-slate-300">
-          <Shield className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-          <span>Post will be published anonymously as a verified student</span>
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-5 shadow-sm">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
+            <MessageSquare className="w-4 h-4 text-brand-700 dark:text-brand-400" />
+            <span>Create Discussion Thread</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+            <Shield className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Identity Protected</span>
+          </div>
         </div>
 
         {remainingDailyMessages <= 0 ? (
-          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs">
-            <strong>Daily limit exhausted (10/10)!</strong> Your daily Student Connect messaging allowance resets at midnight 00:00. You can still read and search all conversations.
+          <div className="p-3.5 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs leading-relaxed">
+            <strong>Daily Message Limit Exhausted (10/10):</strong> Your daily transmission allocation resets automatically at midnight (00:00 IST). You may continue reading, searching, and referencing ongoing threads.
           </div>
         ) : (
-          <form onSubmit={handleCreatePost} className="space-y-3">
-            <textarea
-              required
-              rows={3}
-              placeholder="Ask an academic question, share an experience, or seek senior guidance anonymously..."
-              value={newContent}
-              onChange={(e) => setNewContent(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
-            />
+          <form onSubmit={handleCreatePost} className="space-y-3.5">
+            <div>
+              <textarea
+                required
+                rows={3}
+                placeholder="Share an academic query, seek advice from seniors, or discuss campus initiatives..."
+                value={newContent}
+                onChange={(e) => setNewContent(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-md bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 resize-none font-sans"
+              />
+            </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <select
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200"
-                >
-                  <option value="General Discussion">General Discussion</option>
-                  <option value="Academics & Advice">Academics & Advice</option>
-                  <option value="Projects & Collaborations">Projects & Collaborations</option>
-                  <option value="Hostel & Campus Life">Hostel & Campus Life</option>
-                  <option value="Events & Fests">Events & Fests</option>
-                  <option value="Senior Guidance">Senior Guidance</option>
-                </select>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
+                <div className="w-full sm:w-56">
+                  <select
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  >
+                    <option value="General Discussion">General Discussion</option>
+                    <option value="Academics & Advice">Academics & Advice</option>
+                    <option value="Projects & Collaborations">Projects & Collaborations</option>
+                    <option value="Hostel & Campus Life">Hostel & Campus Life</option>
+                    <option value="Events & Fests">Events & Fests</option>
+                    <option value="Senior Guidance">Senior Guidance</option>
+                  </select>
+                </div>
 
-                <input
-                  type="text"
-                  placeholder="Tags (e.g. cp, advice)"
-                  value={newTags}
-                  onChange={(e) => setNewTags(e.target.value)}
-                  className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 flex-1 sm:w-44"
-                />
+                <div className="relative flex-1">
+                  <Tag className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Tags (e.g. algorithms, hostel-2, advice)"
+                    value={newTags}
+                    onChange={(e) => setNewTags(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  />
+                </div>
               </div>
 
               <button
                 type="submit"
                 disabled={submitting || !newContent.trim()}
-                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-md bg-brand-800 hover:bg-brand-900 text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shrink-0"
               >
                 <Send className="w-3.5 h-3.5" />
-                <span>Post Discussion</span>
+                <span>{submitting ? 'Posting...' : 'Publish Thread'}</span>
               </button>
             </div>
           </form>
         )}
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Filter and Search Controls */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search discussions by topic, keywords, or tags..."
+            placeholder="Search discussion threads by topic, keywords, or tags..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="w-full pl-9 pr-3.5 py-2 rounded-md bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </div>
 
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-        >
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat === 'all' ? 'All Topics' : cat}
-            </option>
-          ))}
-        </select>
+        <div className="w-full sm:w-56">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full px-3 py-2 rounded-md bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          >
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat === 'all' ? 'All Topic Sections' : cat}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* Discussions Feed */}
-      <div className="space-y-4">
-        {posts.map((post) => (
-          <div
-            key={post.id}
-            className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3"
-          >
-            {/* Post Header */}
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-teal-600 dark:text-teal-400">
-                  {post.is_self ? `You (${post.anonymous_alias})` : post.anonymous_alias}
-                </span>
-                <span className="text-slate-300 dark:text-slate-700">•</span>
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-medium">
-                  {post.category}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-slate-400 text-[11px]">
-                <span>
-                  {new Date(post.created_at).toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </span>
-                <button
-                  onClick={() => setReportTargetId(post.id)}
-                  title="Report Post"
-                  className="hover:text-rose-500 p-1"
-                >
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Content */}
-            <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
-              {post.content}
-            </p>
-
-            {/* Tags */}
-            {post.tags && (
-              <div className="flex flex-wrap gap-1">
-                {post.tags.split(',').map((t: string) => (
-                  <span
-                    key={t}
-                    className="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500"
-                  >
-                    #{t.trim()}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Thread Replies */}
-            {post.replies && post.replies.length > 0 && (
-              <div className="pl-4 border-l-2 border-teal-500/30 space-y-2.5 pt-2">
-                {post.replies.map((reply: any) => (
-                  <div
-                    key={reply.id}
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-xs space-y-1"
-                  >
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-blue-600 dark:text-blue-400">
-                        {reply.is_self ? `You (${reply.anonymous_alias})` : reply.anonymous_alias}
-                      </span>
-                      <span className="text-slate-400">
-                        {new Date(reply.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <p className="text-slate-700 dark:text-slate-300">{reply.content}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Reply Input Form or Trigger */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              {replyParentId === post.id ? (
-                <div className="w-full space-y-2">
-                  <textarea
-                    rows={2}
-                    placeholder="Write your anonymous reply..."
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white resize-none"
-                  />
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => setReplyParentId(null)}
-                      className="px-3 py-1 rounded-lg text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      disabled={submittingReply || !replyContent.trim()}
-                      onClick={() => handleSendReply(post.id)}
-                      className="px-3.5 py-1 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-700 disabled:opacity-50"
-                    >
-                      Send Reply
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setReplyParentId(post.id)}
-                  className="text-xs font-semibold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1"
-                >
-                  <Reply className="w-3.5 h-3.5" />
-                  <span>Reply anonymously ({post.replies_count || 0})</span>
-                </button>
-              )}
-            </div>
+      {/* Feed List */}
+      <div className="space-y-3.5">
+        {loading ? (
+          <div className="p-8 text-center text-xs text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+            Loading discussions...
           </div>
-        ))}
+        ) : posts.length === 0 ? (
+          <div className="p-8 text-center text-xs text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+            No active discussions found for the specified criteria.
+          </div>
+        ) : (
+          posts.map((post) => (
+            <article
+              key={post.id}
+              className="human-card p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-3 transition-colors hover:border-slate-300 dark:hover:border-slate-700"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center text-[10px] uppercase font-mono">
+                    #
+                  </div>
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {post.is_self ? `${post.anonymous_alias} (You)` : post.anonymous_alias}
+                  </span>
+                  <span className="text-slate-300 dark:text-slate-700">•</span>
+                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200 dark:border-slate-700">
+                    {post.category}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3 text-slate-400 text-xs">
+                  <span className="font-mono text-[11px]">
+                    {new Date(post.created_at).toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                  <button
+                    onClick={() => setReportTargetId(post.id)}
+                    title="Report violation to administration"
+                    className="hover:text-rose-600 transition-colors p-1"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Body */}
+              <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line font-sans">
+                {post.content}
+              </p>
+
+              {/* Tags */}
+              {post.tags && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {post.tags.split(',').map((t: string) => (
+                    <span
+                      key={t}
+                      className="text-[10px] px-2 py-0.5 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 font-mono border border-slate-200 dark:border-slate-700"
+                    >
+                      #{t.trim()}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Replies Container */}
+              {post.replies && post.replies.length > 0 && (
+                <div className="mt-3 pl-4 border-l-2 border-brand-200 dark:border-brand-900 space-y-2.5 pt-1">
+                  {post.replies.map((reply: any) => (
+                    <div
+                      key={reply.id}
+                      className="p-3 rounded-md bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs space-y-1"
+                    >
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {reply.is_self ? `${reply.anonymous_alias} (You)` : reply.anonymous_alias}
+                        </span>
+                        <span className="text-slate-400 font-mono text-[10px]">
+                          {new Date(reply.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{reply.content}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Reply Form or Trigger */}
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                {replyParentId === post.id ? (
+                  <div className="w-full space-y-2 mt-2">
+                    <textarea
+                      rows={2}
+                      placeholder="Write your anonymous response..."
+                      value={replyContent}
+                      onChange={(e) => setReplyContent(e.target.value)}
+                      className="w-full px-3 py-2 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 resize-none font-sans"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => setReplyParentId(null)}
+                        className="px-3 py-1.5 rounded-md text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        disabled={submittingReply || !replyContent.trim()}
+                        onClick={() => handleSendReply(post.id)}
+                        className="px-3.5 py-1.5 rounded-md bg-brand-800 hover:bg-brand-900 text-white text-xs font-medium transition-colors disabled:opacity-50"
+                      >
+                        Submit Response
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setReplyParentId(post.id)}
+                    className="text-xs font-medium text-brand-700 dark:text-brand-300 hover:underline flex items-center gap-1.5 py-1"
+                  >
+                    <Reply className="w-3.5 h-3.5" />
+                    <span>Responses ({post.replies_count || 0})</span>
+                  </button>
+                )}
+              </div>
+            </article>
+          ))
+        )}
       </div>
 
       {/* Report Modal */}
       {reportTargetId && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-2xl">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-amber-500" />
-              Report Inappropriate Discussion
-            </h2>
+          <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 mb-1">
+              <AlertTriangle className="w-5 h-5 shrink-0" />
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                Report Code of Conduct Violation
+              </h2>
+            </div>
             <p className="text-xs text-slate-500 mt-1">
-              Please specify why this message violates college community guidelines.
+              Please specify the guideline violation (harassment, spam, academic dishonesty, or policy breach). Reports are forwarded directly to the proctorial board.
             </p>
 
             <form onSubmit={handleReportMessage} className="mt-4 space-y-3">
               <textarea
                 required
                 rows={3}
-                placeholder="Reason for report..."
+                placeholder="Specific description of violation..."
                 value={reportReason}
                 onChange={(e) => setReportReason(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white resize-none"
+                className="w-full px-3 py-2 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white resize-none focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setReportTargetId(null)}
-                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400"
+                  className="px-3.5 py-2 rounded-md text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700"
+                  className="px-4 py-2 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium transition-colors"
                 >
-                  Submit Report
+                  File Report
                 </button>
               </div>
             </form>

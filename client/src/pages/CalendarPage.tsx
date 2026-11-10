@@ -70,7 +70,6 @@ export const CalendarPage: React.FC = () => {
     'placement',
   ];
 
-  // Helper for Google Calendar Link
   const getGoogleCalendarUrl = (event: any) => {
     const startIso = new Date(event.start_time).toISOString().replace(/-|:|\.\d\d\d/g, '');
     const endIso = new Date(event.end_time).toISOString().replace(/-|:|\.\d\d\d/g, '');
@@ -82,7 +81,6 @@ export const CalendarPage: React.FC = () => {
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startIso}/${endIso}&details=${details}&location=${location}`;
   };
 
-  // Month view helpers
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -98,26 +96,26 @@ export const CalendarPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <CalendarIcon className="w-6 h-6 text-teal-600 dark:text-teal-400" />
-            Interactive College Calendar
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+            <CalendarIcon className="w-5 h-5 text-brand-700 dark:text-brand-400" />
+            Campus Academic & Activity Calendar
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Academic milestones, hackathons, guest lectures, club workshops, and placement drives.
+          <p className="text-xs text-slate-500 mt-1">
+            Official institutional timeline: examinations, hackathons, seminars, placement drives, and club activities.
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-xl flex items-center">
+          <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-lg flex items-center">
             <button
               onClick={() => setViewMode('month')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`btn-tactile px-3 py-1 rounded-md text-xs font-semibold transition-all ${
                 viewMode === 'month'
-                  ? 'bg-white dark:bg-slate-900 text-teal-600 dark:text-teal-400 shadow-sm'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-400'
               }`}
             >
@@ -125,9 +123,9 @@ export const CalendarPage: React.FC = () => {
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`btn-tactile px-3 py-1 rounded-md text-xs font-semibold transition-all ${
                 viewMode === 'list'
-                  ? 'bg-white dark:bg-slate-900 text-teal-600 dark:text-teal-400 shadow-sm'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
                   : 'text-slate-600 dark:text-slate-400'
               }`}
             >
@@ -140,24 +138,24 @@ export const CalendarPage: React.FC = () => {
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search events, organizers, topics, or venues..."
+            placeholder="Search events, workshops, guest lectures, or locations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="w-full pl-9 pr-3.5 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
           />
         </div>
 
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+          className="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600"
         >
           {categories.map((cat) => (
             <option key={cat} value={cat}>
-              {cat === 'all' ? 'All Event Categories' : cat.toUpperCase()}
+              {cat === 'all' ? 'All Event Types' : cat.toUpperCase()}
             </option>
           ))}
         </select>
@@ -165,30 +163,30 @@ export const CalendarPage: React.FC = () => {
 
       {/* View Mode: Month Calendar */}
       {viewMode === 'month' ? (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
           {/* Month Header Navigation */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
               {monthNames[month]} {year}
             </h2>
             <div className="flex items-center gap-1">
               <button
                 onClick={prevMonth}
-                className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-1 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={nextMonth}
-                className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-1 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Days of week */}
-          <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <div className="grid grid-cols-7 gap-1.5 mb-1.5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
             <span>Sun</span>
             <span>Mon</span>
             <span>Tue</span>
@@ -199,14 +197,13 @@ export const CalendarPage: React.FC = () => {
           </div>
 
           {/* Calendar Day Grid */}
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-1.5">
             {Array.from({ length: firstDay }).map((_, i) => (
-              <div key={`empty-${i}`} className="min-h-[90px] rounded-2xl bg-slate-50/50 dark:bg-slate-800/20" />
+              <div key={`empty-${i}`} className="min-h-[80px] rounded-lg bg-slate-50 dark:bg-slate-800/20" />
             ))}
 
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const day = i + 1;
-              const dateObj = new Date(year, month, day);
               const dayEvents = events.filter((e) => {
                 const eDate = new Date(e.start_time);
                 return (
@@ -224,16 +221,16 @@ export const CalendarPage: React.FC = () => {
               return (
                 <div
                   key={day}
-                  className={`min-h-[90px] p-2 rounded-2xl border transition-all flex flex-col justify-between ${
+                  className={`min-h-[80px] p-2 rounded-lg border transition-all flex flex-col justify-between ${
                     isToday
-                      ? 'bg-teal-50/40 dark:bg-teal-950/30 border-teal-500/50 ring-1 ring-teal-500/30'
-                      : 'bg-white dark:bg-slate-800/40 border-slate-100 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                      ? 'bg-blue-50/50 dark:bg-blue-950/30 border-blue-600'
+                      : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-800'
                   }`}
                 >
                   <span
                     className={`text-xs font-bold ${
                       isToday
-                        ? 'w-6 h-6 rounded-full bg-teal-600 text-white flex items-center justify-center'
+                        ? 'w-5 h-5 rounded bg-blue-900 text-white flex items-center justify-center text-[10px]'
                         : 'text-slate-700 dark:text-slate-300'
                     }`}
                   >
@@ -245,13 +242,13 @@ export const CalendarPage: React.FC = () => {
                       <button
                         key={evt.id}
                         onClick={() => setSelectedEvent(evt)}
-                        className="w-full text-left p-1 rounded-lg bg-teal-100 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300 text-[10px] font-semibold truncate hover:opacity-80 transition-opacity"
+                        className="w-full text-left p-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[10px] font-semibold truncate hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                       >
                         {evt.title}
                       </button>
                     ))}
                     {dayEvents.length > 2 && (
-                      <span className="text-[10px] text-slate-400 pl-1">
+                      <span className="text-[10px] text-slate-400 pl-0.5">
                         +{dayEvents.length - 2} more
                       </span>
                     )}
@@ -263,23 +260,23 @@ export const CalendarPage: React.FC = () => {
         </div>
       ) : (
         /* View Mode: List */
-        <div className="space-y-4">
+        <div className="space-y-3">
           {events.map((evt) => (
             <div
               key={evt.id}
               onClick={() => setSelectedEvent(evt)}
-              className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-teal-500/40 cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
             >
-              <div className="space-y-1.5 min-w-0">
+              <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                  <span className="text-[10px] font-semibold uppercase text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
                     {evt.category}
                   </span>
-                  <span className="text-xs text-slate-400">
-                    Organized by: <strong className="text-slate-700 dark:text-slate-300">{evt.organizer}</strong>
+                  <span className="text-xs text-slate-500">
+                    Host: <strong className="text-slate-700 dark:text-slate-300">{evt.organizer}</strong>
                   </span>
                 </div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white truncate">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
                   {evt.title}
                 </h3>
                 <p className="text-xs text-slate-500 flex items-center gap-3 flex-wrap">
@@ -303,7 +300,7 @@ export const CalendarPage: React.FC = () => {
                     e.stopPropagation();
                     setSelectedEvent(evt);
                   }}
-                  className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs transition-colors"
+                  className="px-3 py-1.5 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs transition-colors"
                 >
                   View Details
                 </button>
@@ -315,34 +312,34 @@ export const CalendarPage: React.FC = () => {
 
       {/* Event Details Modal */}
       {selectedEvent && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto animate-scaleIn">
-            <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-xl w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-4 pb-3 border-b border-slate-200 dark:border-slate-800">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                <span className="text-[10px] font-semibold uppercase text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
                   {selectedEvent.category}
                 </span>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white mt-2">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white mt-1.5">
                   {selectedEvent.title}
                 </h2>
               </div>
               <button
                 onClick={() => setSelectedEvent(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="p-1 rounded-md text-slate-400 hover:text-slate-600"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="mt-5 space-y-6 text-sm">
+            <div className="mt-4 space-y-4 text-xs">
               {/* Timing & Venue */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                 <div className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Date & Time
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Schedule
                   </span>
-                  <p className="font-medium text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <Clock className="w-4 h-4 text-teal-600" />
+                  <p className="font-semibold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-slate-500" />
                     {new Date(selectedEvent.start_time).toLocaleString(undefined, {
                       dateStyle: 'medium',
                       timeStyle: 'short',
@@ -351,11 +348,11 @@ export const CalendarPage: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Campus Venue
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Venue
                   </span>
-                  <p className="font-medium text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-teal-600" />
+                  <p className="font-semibold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-slate-500" />
                     {selectedEvent.venue}
                   </p>
                 </div>
@@ -363,18 +360,18 @@ export const CalendarPage: React.FC = () => {
 
               {/* Description */}
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                  About Event
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                  Event Description
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                   {selectedEvent.description}
                 </p>
               </div>
 
               {/* Coordinator & Organizer */}
-              <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-xs space-y-1">
+              <div className="p-3.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs space-y-1 bg-white dark:bg-slate-900">
                 <p>
-                  <strong>Organizing Body:</strong> {selectedEvent.organizer}
+                  <strong>Organized by:</strong> {selectedEvent.organizer}
                 </p>
                 <p>
                   <strong>Coordinator:</strong> {selectedEvent.coordinator_name} ({selectedEvent.coordinator_contact})
@@ -388,11 +385,11 @@ export const CalendarPage: React.FC = () => {
 
               {/* Preparation Notes */}
               {selectedEvent.preparation_notes && (
-                <div className="p-4 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40 text-xs">
-                  <h4 className="font-bold text-amber-900 dark:text-amber-200 mb-1">
-                    Preparation & Required Materials:
+                <div className="p-3.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+                  <h4 className="font-bold text-slate-900 dark:text-white mb-0.5">
+                    Instructions & Required Materials:
                   </h4>
-                  <p className="text-amber-800 dark:text-amber-300 leading-relaxed">
+                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                     {selectedEvent.preparation_notes}
                   </p>
                 </div>
@@ -400,43 +397,43 @@ export const CalendarPage: React.FC = () => {
 
               {/* FAQs */}
               {selectedEvent.faqs && (
-                <div className="space-y-2">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <div className="space-y-1.5">
+                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Frequently Asked Questions
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {(typeof selectedEvent.faqs === 'string'
                       ? JSON.parse(selectedEvent.faqs)
                       : selectedEvent.faqs
                     ).map((faq: any, idx: number) => (
-                      <div key={idx} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 text-xs">
+                      <div key={idx} className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs">
                         <p className="font-semibold text-slate-900 dark:text-white">Q: {faq.question}</p>
-                        <p className="text-slate-600 dark:text-slate-400 mt-1">A: {faq.answer}</p>
+                        <p className="text-slate-600 dark:text-slate-400 mt-0.5">A: {faq.answer}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Calendar Export & Registration */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              {/* Export Links */}
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2">
                   <a
                     href={`/api/events/${selectedEvent.id}/ics`}
-                    className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors"
+                    className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Download .ICS (Apple/Outlook)</span>
+                    <span>Download .ICS</span>
                   </a>
 
                   <a
                     href={getGoogleCalendarUrl(selectedEvent)}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors"
+                    className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors"
                   >
-                    <CalendarPlus className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Add to Google Calendar</span>
+                    <CalendarPlus className="w-3.5 h-3.5 text-blue-800 dark:text-blue-400" />
+                    <span>Google Calendar</span>
                   </a>
                 </div>
 
@@ -445,9 +442,9 @@ export const CalendarPage: React.FC = () => {
                     href={selectedEvent.registration_link}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs flex items-center gap-2 shadow-md transition-colors"
+                    className="px-4 py-1.5 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors"
                   >
-                    <span>Register Now</span>
+                    <span>Register</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 )}

@@ -7,7 +7,6 @@ import {
   XCircle,
   AlertCircle,
   PlusCircle,
-  ShieldAlert,
   Ban,
   Check,
   X,
@@ -88,7 +87,7 @@ export const SlotBookingPage: React.FC = () => {
   };
 
   const handleCancelBooking = async (bookingId: string) => {
-    if (!window.confirm('Are you sure you want to cancel this booking request?')) return;
+    if (!window.confirm('Cancel this facility reservation request?')) return;
 
     try {
       await api.patch(`/bookings/${bookingId}/cancel`);
@@ -115,52 +114,52 @@ export const SlotBookingPage: React.FC = () => {
     switch (status) {
       case 'approved':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Approved
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900">
+            <CheckCircle2 className="w-3 h-3" /> Approved
           </span>
         );
       case 'rejected':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
-            <XCircle className="w-3.5 h-3.5" /> Rejected
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-200 dark:border-rose-900">
+            <XCircle className="w-3 h-3" /> Rejected
           </span>
         );
       case 'cancelled':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400">
-            <Ban className="w-3.5 h-3.5" /> Cancelled
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+            <Ban className="w-3 h-3" /> Cancelled
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-            <Clock className="w-3.5 h-3.5" /> Pending Review
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-900">
+            <Clock className="w-3 h-3" /> Pending Review
           </span>
         );
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <Clock className="w-6 h-6 text-teal-600 dark:text-teal-400" />
-            Club & Facility Slot Booking
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+            <Clock className="w-5 h-5 text-blue-900 dark:text-blue-400" />
+            Campus Facility & Society Room Reservations
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Reserve campus facilities, labs, and seminar halls with automated conflict detection.
+          <p className="text-xs text-slate-500 mt-1">
+            Reserve auditoriums, laboratories, and club rooms with transactional conflict prevention.
           </p>
         </div>
 
         {/* Tab switch */}
-        <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-xl flex items-center self-start sm:self-auto">
+        <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-lg flex items-center self-start sm:self-auto">
           <button
             onClick={() => setViewTab('slots')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
               viewTab === 'slots'
-                ? 'bg-white dark:bg-slate-900 text-teal-600 dark:text-teal-400 shadow-sm'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-400'
             }`}
           >
@@ -168,9 +167,9 @@ export const SlotBookingPage: React.FC = () => {
           </button>
           <button
             onClick={() => setViewTab('my-bookings')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
               viewTab === 'my-bookings'
-                ? 'bg-white dark:bg-slate-900 text-teal-600 dark:text-teal-400 shadow-sm'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-400'
             }`}
           >
@@ -182,10 +181,10 @@ export const SlotBookingPage: React.FC = () => {
       {/* Notification Banner */}
       {notification && (
         <div
-          className={`p-4 rounded-xl flex items-center gap-2 text-sm ${
+          className={`p-3.5 rounded-lg flex items-center gap-2 text-xs ${
             notification.type === 'success'
-              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-              : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+              ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+              : 'bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
           }`}
         >
           {notification.type === 'success' ? (
@@ -194,7 +193,7 @@ export const SlotBookingPage: React.FC = () => {
             <AlertCircle className="w-4 h-4 shrink-0" />
           )}
           <span>{notification.message}</span>
-          <button onClick={() => setNotification(null)} className="ml-auto text-xs opacity-70 hover:opacity-100">
+          <button onClick={() => setNotification(null)} className="ml-auto opacity-70 hover:opacity-100">
             Dismiss
           </button>
         </div>
@@ -207,11 +206,11 @@ export const SlotBookingPage: React.FC = () => {
             <select
               value={selectedFacility}
               onChange={(e) => setSelectedFacility(e.target.value)}
-              className="flex-1 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600"
             >
               {facilities.map((f) => (
                 <option key={f} value={f}>
-                  {f === 'all' ? 'All Campus Facilities & Clubs' : f}
+                  {f === 'all' ? 'All Campus Facilities & Laboratories' : f}
                 </option>
               ))}
             </select>
@@ -220,13 +219,13 @@ export const SlotBookingPage: React.FC = () => {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
 
             {selectedDate && (
               <button
                 onClick={() => setSelectedDate('')}
-                className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                className="px-3 py-2 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800"
               >
                 Clear Date
               </button>
@@ -234,58 +233,58 @@ export const SlotBookingPage: React.FC = () => {
           </div>
 
           {/* Slots Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {slots.map((slot) => (
               <div
                 key={slot.id}
-                className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
+                className={`human-card p-4 rounded-xl border transition-all flex flex-col justify-between ${
                   slot.is_booked
                     ? 'bg-slate-50/70 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-60'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-teal-500/40 shadow-sm'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <span
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                      className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded ${
                         slot.is_booked
-                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
-                          : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                          ? 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                          : 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                       }`}
                     >
-                      {slot.is_booked ? 'Reserved' : 'Slot Available'}
+                      {slot.is_booked ? 'Slot Reserved' : 'Slot Available'}
                     </span>
                     <span className="text-[11px] font-mono text-slate-500">{slot.slot_date}</span>
                   </div>
 
-                  <h3 className="font-bold text-slate-900 dark:text-white text-sm mt-1">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-xs mt-1">
                     {slot.facility_or_club}
                   </h3>
 
-                  <p className="text-xs font-semibold text-teal-600 dark:text-teal-400 mt-2 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-1.5 flex items-center gap-1.5 font-mono">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
                     {slot.start_time} - {slot.end_time}
                   </p>
 
                   {slot.notes && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-2">
+                    <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-2">
                       {slot.notes}
                     </p>
                   )}
                 </div>
 
-                <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                   <button
                     disabled={slot.is_booked}
                     onClick={() => setActiveSlot(slot)}
-                    className={`w-full py-2 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                    className={`w-full py-1.5 px-3 rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 transition-colors ${
                       slot.is_booked
                         ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-                        : 'bg-teal-600 hover:bg-teal-700 text-white shadow-sm'
+                        : 'bg-blue-900 hover:bg-blue-800 text-white'
                     }`}
                   >
-                    <PlusCircle className="w-4 h-4" />
-                    {slot.is_booked ? 'Already Reserved' : 'Request Reservation'}
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    {slot.is_booked ? 'Reserved' : 'Request Slot'}
                   </button>
                 </div>
               </div>
@@ -294,14 +293,14 @@ export const SlotBookingPage: React.FC = () => {
         </>
       ) : (
         /* My Bookings History Tab */
-        <div className="space-y-4">
+        <div className="space-y-3">
           {myBookings.length === 0 ? (
-            <div className="text-center py-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 text-slate-400">
-              <History className="w-10 h-10 mx-auto mb-2 text-slate-400/60" />
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                No booking requests submitted yet
+            <div className="text-center py-12 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 text-slate-400">
+              <History className="w-8 h-8 mx-auto mb-2 text-slate-400" />
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                No active booking requests
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-[11px] text-slate-500 mt-1">
                 Select an available slot from the "Available Slots" tab to reserve a campus facility.
               </p>
             </div>
@@ -309,19 +308,19 @@ export const SlotBookingPage: React.FC = () => {
             myBookings.map((b) => (
               <div
                 key={b.id}
-                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
               >
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-2">
                     {getStatusBadge(b.status)}
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                       {b.club_or_society}
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white truncate">
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-white truncate">
                     {b.purpose}
                   </h3>
-                  <p className="text-xs text-slate-500 flex items-center gap-3 flex-wrap">
+                  <p className="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
                     <span>
                       <strong>Facility:</strong> {b.facility_or_club}
                     </span>
@@ -330,12 +329,12 @@ export const SlotBookingPage: React.FC = () => {
                       {b.slot_date} ({b.start_time} - {b.end_time})
                     </span>
                   </p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 italic">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 italic">
                     "{b.description}"
                   </p>
                   {b.reviewer_notes && (
-                    <div className="mt-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-800/80 text-xs text-slate-600 dark:text-slate-300">
-                      <strong>Admin Note:</strong> {b.reviewer_notes}
+                    <div className="mt-2 p-2 rounded-md bg-slate-50 dark:bg-slate-800 text-[11px] text-slate-600 dark:text-slate-300">
+                      <strong>Authority Note:</strong> {b.reviewer_notes}
                     </div>
                   )}
                 </div>
@@ -344,7 +343,7 @@ export const SlotBookingPage: React.FC = () => {
                   {b.status === 'pending' && (
                     <button
                       onClick={() => handleCancelBooking(b.id)}
-                      className="px-3.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold transition-colors"
+                      className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-medium transition-colors"
                     >
                       Cancel Request
                     </button>
@@ -358,37 +357,37 @@ export const SlotBookingPage: React.FC = () => {
 
       {/* Booking Modal */}
       {activeSlot && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 shadow-2xl animate-scaleIn">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-teal-600" />
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 shadow-xl">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-blue-900 dark:text-blue-400" />
                 Facility Reservation Request
               </h2>
               <button onClick={() => setActiveSlot(null)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="my-3 p-3 rounded-xl bg-teal-50 dark:bg-teal-950/50 border border-teal-200 dark:border-teal-800 text-xs text-teal-800 dark:text-teal-300">
+            <div className="my-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300">
               <p className="font-semibold">{activeSlot.facility_or_club}</p>
-              <p className="mt-0.5">
-                Date: {activeSlot.slot_date} • Time: {activeSlot.start_time} - {activeSlot.end_time}
+              <p className="mt-0.5 text-slate-500 font-mono">
+                Date: {activeSlot.slot_date} • Timing: {activeSlot.start_time} - {activeSlot.end_time}
               </p>
             </div>
 
-            <form onSubmit={handleBookingSubmit} className="space-y-4">
+            <form onSubmit={handleBookingSubmit} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Club, Society, or Batch Group *
+                  Club / Society / Batch Committee *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Coding Club / Robotics Society / IEEE Student Branch"
+                  placeholder="e.g. Robotics Club / Coding Society / IEEE Branch"
                   value={clubName}
                   onChange={(e) => setClubName(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -399,24 +398,24 @@ export const SlotBookingPage: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Hackathon Mentorship & Hardware Testing"
+                  placeholder="e.g. Hardware sensor testing & mock interview sessions"
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Detailed Activity Description *
+                  Activity Details & Expected Headcount *
                 </label>
                 <textarea
                   required
                   rows={3}
-                  placeholder="Explain the scheduled activities, estimated student attendance, and any special equipment required..."
+                  placeholder="Describe activities, estimated student participants, and equipment requirements..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white resize-none"
+                  className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white resize-none"
                 />
               </div>
 
@@ -424,14 +423,14 @@ export const SlotBookingPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveSlot(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400"
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs disabled:opacity-50"
+                  className="px-4 py-1.5 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-semibold text-xs disabled:opacity-50"
                 >
                   {submitting ? 'Submitting...' : 'Submit Request'}
                 </button>

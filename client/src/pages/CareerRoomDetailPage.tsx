@@ -8,9 +8,9 @@ import {
   Shield,
   AlertCircle,
   Clock,
-  Sparkles,
   Info,
   LogOut,
+  GraduationCap,
 } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -62,11 +62,8 @@ export const CareerRoomDetailPage: React.FC = () => {
 
     fetchRoomAndMessages();
 
-    // Socket.IO setup
     if (token) {
-      const socket = io({
-        auth: { token },
-      });
+      const socket = io({ auth: { token } });
       socketRef.current = socket;
 
       socket.emit('join_career_room', id);
@@ -74,7 +71,6 @@ export const CareerRoomDetailPage: React.FC = () => {
       socket.on('new_message', (msg: any) => {
         if (msg.context_id === id) {
           setMessages((prev) => {
-            // Avoid duplicate if already added via local API response
             if (prev.some((m) => m.id === msg.id)) return prev;
             return [
               ...prev,
@@ -141,25 +137,25 @@ export const CareerRoomDetailPage: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-700" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8.5rem)] max-w-5xl mx-auto">
+    <div className="flex flex-col h-[calc(100vh-8.5rem)] max-w-4xl mx-auto">
       {/* Header */}
-      <div className="p-4 rounded-t-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
+      <div className="p-4 rounded-t-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <Link
             to="/career-rooms"
-            className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
+            className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 bg-teal-100 dark:bg-teal-900/40 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-semibold uppercase text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
                 {room?.category}
               </span>
               <span className="text-xs text-slate-400 flex items-center gap-1">
@@ -172,35 +168,33 @@ export const CareerRoomDetailPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleLeaveRoom}
-            className="px-3 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-medium flex items-center gap-1.5 transition-colors shrink-0"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Leave</span>
-          </button>
-        </div>
+        <button
+          onClick={handleLeaveRoom}
+          className="px-2.5 py-1 rounded-md text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-medium flex items-center gap-1.5 transition-colors shrink-0 border border-slate-200 dark:border-slate-700"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>Leave Room</span>
+        </button>
       </div>
 
       {/* Guidelines Banner */}
-      <div className="px-4 py-2 bg-teal-50/70 dark:bg-teal-950/30 border-x border-slate-200 dark:border-slate-800 flex items-center gap-2 text-xs text-teal-800 dark:text-teal-300">
-        <Info className="w-4 h-4 shrink-0 text-teal-600 dark:text-teal-400" />
+      <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/60 border-x border-slate-200 dark:border-slate-800 flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+        <Info className="w-4 h-4 shrink-0 text-slate-500" />
         <span className="truncate">
           <strong>Guidelines:</strong> {room?.guidelines}
         </span>
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 p-4 overflow-y-auto bg-slate-50/50 dark:bg-slate-900/50 border-x border-slate-200 dark:border-slate-800 space-y-4">
+      <div className="flex-1 p-4 overflow-y-auto bg-slate-100/60 dark:bg-slate-950/60 border-x border-slate-200 dark:border-slate-800 space-y-3.5">
         {messages.length === 0 ? (
           <div className="text-center py-12 text-slate-400">
-            <Sparkles className="w-8 h-8 mx-auto mb-2 text-teal-500/40" />
-            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-              Welcome to {room?.name}!
+            <GraduationCap className="w-8 h-8 mx-auto mb-2 text-slate-400" />
+            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Welcome to the {room?.name} discussion.
             </p>
-            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-              Be the first to post a study doubt, resource link, or prep strategy anonymously.
+            <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
+              Share interview preparation questions, problem solving strategies, or study tips anonymously.
             </p>
           </div>
         ) : (
@@ -209,8 +203,8 @@ export const CareerRoomDetailPage: React.FC = () => {
               key={msg.id}
               className={`flex flex-col ${msg.is_self ? 'items-end' : 'items-start'}`}
             >
-              <div className="flex items-center gap-2 mb-1 text-[11px] text-slate-400">
-                <span className={`font-semibold ${msg.is_self ? 'text-teal-600 dark:text-teal-400' : 'text-slate-700 dark:text-slate-300'}`}>
+              <div className="flex items-center gap-1.5 mb-1 text-[11px] text-slate-400 font-mono">
+                <span className={`font-semibold ${msg.is_self ? 'text-blue-900 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}>
                   {msg.is_self ? `You (${msg.anonymous_alias})` : msg.anonymous_alias}
                 </span>
                 <span>•</span>
@@ -219,10 +213,10 @@ export const CareerRoomDetailPage: React.FC = () => {
                 </span>
               </div>
               <div
-                className={`max-w-lg rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                className={`max-w-md rounded-lg px-3.5 py-2 text-xs leading-relaxed ${
                   msg.is_self
-                    ? 'bg-teal-600 text-white rounded-tr-none shadow-sm'
-                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-none border border-slate-200/80 dark:border-slate-700/80 shadow-sm'
+                    ? 'bg-blue-900 text-white rounded-tr-none shadow-xs'
+                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-none border border-slate-200 dark:border-slate-700 shadow-xs'
                 }`}
               >
                 {msg.content}
@@ -234,42 +228,31 @@ export const CareerRoomDetailPage: React.FC = () => {
       </div>
 
       {/* Chat Input & Daily Limit Meter */}
-      <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-b-2xl">
-        {/* Daily limit badge */}
+      <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-b-xl">
         <div className="flex items-center justify-between text-xs mb-2 px-1">
-          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-            <Shield className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-            <span>Anonymous Peer Room</span>
+          <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
+            <Shield className="w-3.5 h-3.5 text-slate-400" />
+            <span>Anonymous Academic Room</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              Messages remaining today:
-            </span>
-            <span
-              className={`font-mono font-bold px-2 py-0.5 rounded-full text-xs ${
-                remainingDailyMessages > 3
-                  ? 'bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300'
-                  : remainingDailyMessages > 0
-                  ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
-                  : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'
-              }`}
-            >
-              {remainingDailyMessages} / 10
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+            <span>Daily allowance:</span>
+            <span className="font-mono font-bold text-slate-900 dark:text-white">
+              {remainingDailyMessages} / 10 left
             </span>
           </div>
         </div>
 
         {error && (
-          <div className="mb-2 p-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 text-xs flex items-center gap-2">
+          <div className="mb-2 p-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {remainingDailyMessages <= 0 ? (
-          <div className="p-3 text-center rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs">
-            <strong>Daily message limit reached (10/10)!</strong> Your career room messaging allowance resets tomorrow at 00:00 midnight according to campus time. You can still read all discussions.
+          <div className="p-3 text-center rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs">
+            <strong>Daily messaging quota exhausted (10/10).</strong> Resets tomorrow at 00:00 midnight. Reading and search remain available.
           </div>
         ) : (
           <form onSubmit={handleSendMessage} className="flex gap-2">
@@ -277,16 +260,16 @@ export const CareerRoomDetailPage: React.FC = () => {
               type="text"
               value={inputContent}
               onChange={(e) => setInputContent(e.target.value)}
-              placeholder="Post a query, resource, or advice anonymously..."
+              placeholder="Post a query, problem statement, or prep resource anonymously..."
               disabled={sending}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="flex-1 px-3.5 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
             <button
               type="submit"
               disabled={sending || !inputContent.trim()}
-              className="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
+              className="px-3.5 py-2 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-3.5 h-3.5" />
             </button>
           </form>
         )}

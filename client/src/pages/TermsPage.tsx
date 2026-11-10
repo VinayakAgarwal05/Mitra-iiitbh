@@ -8,6 +8,8 @@ import {
   Mail,
   Clock,
   BookOpen,
+  Calendar,
+  Building2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -15,107 +17,107 @@ export const TermsPage: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="p-8 rounded-3xl bg-gradient-to-r from-teal-800 to-slate-900 text-white shadow-lg">
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 text-xs font-semibold w-fit mb-3">
+    <div className="space-y-6 max-w-4xl mx-auto animate-fadeIn">
+      {/* Formal Academic Header */}
+      <div className="border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
+        <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300 uppercase tracking-wider mb-1">
           <Shield className="w-3.5 h-3.5" />
-          <span>Official Campus Community Policy • Version 1.0</span>
+          <span>Institutional Charter • Document Ref: REG-2026-v1</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-          Terms & Conditions and Community Guidelines
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          Community Regulations & Code of Conduct
         </h1>
-        <p className="text-xs sm:text-sm text-teal-100/80 mt-2 max-w-2xl leading-relaxed">
-          College Connect is an exclusive, private campus network. All registered members agree to uphold academic integrity, respectful discourse, and student welfare.
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
+          College Connect is an authenticated intranet community operated exclusively for students, researchers, and faculty of the institute. All members are bound by institute conduct rules, academic honesty tenets, and the community terms below.
         </p>
       </div>
 
       {/* Acceptance Status Box */}
       {user && (
-        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between flex-wrap gap-2 text-xs">
+        <div className="p-4 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between flex-wrap gap-2 text-xs">
           <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
-            <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>
-              Signed in as <strong>{user.full_name}</strong> ({user.email}). Terms accepted on registration (Version 1.0).
+              Signed in as <strong>{user.full_name}</strong> ({user.email}). Terms accepted upon verified registration (Policy v1.0).
             </span>
           </div>
-          <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded">
-            Status: Compliant
+          <span className="font-mono text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 text-[11px]">
+            Status: Fully Compliant
           </span>
         </div>
       )}
 
-      {/* Terms Sections */}
-      <div className="space-y-5 text-sm">
-        {/* 1. Eligibility */}
-        <section className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-            <Mail className="w-4 h-4 text-teal-600" />
-            <h3>1. Eligibility & College Email Whitelist</h3>
+      {/* Structured Policy Articles */}
+      <div className="space-y-4">
+        {/* Article 1 */}
+        <section className="p-5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
+            <Mail className="w-4 h-4 text-brand-700 dark:text-brand-400 shrink-0" />
+            <h3>Article 1: Institutional Whitelist & Account Authorization</h3>
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Registration on College Connect is exclusively restricted to active, enrolled students, faculty members, and authorized administrative representatives possessing an authenticated college email address belonging to approved campus domains (e.g., <code className="text-teal-600">@iiitbh.ac.in</code>, <code className="text-teal-600">@college.edu</code>). Accounts registered using unauthorized third-party providers (Gmail, Yahoo) are prohibited and rejected by server firewalls.
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+            Access is strictly governed by institutional email verification. Only email addresses bearing approved institute domain designations (including <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-brand-700 dark:text-brand-300">@iiitbh.ac.in</code> and <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-brand-700 dark:text-brand-300">@college.edu</code>) can complete registration. Third-party personal accounts (Gmail, Yahoo, Outlook) are automatically blocked. Sharing, renting, or transferring credentials violates institute IT policy.
           </p>
         </section>
 
-        {/* 2. Anonymous Communication Rules */}
-        <section className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-            <Lock className="w-4 h-4 text-teal-600" />
-            <h3>2. Anonymous Discourse & Identity Protection</h3>
+        {/* Article 2 */}
+        <section className="p-5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
+            <Lock className="w-4 h-4 text-brand-700 dark:text-brand-400 shrink-0" />
+            <h3>Article 2: Anonymous Discourse & Internal Privacy Architecture</h3>
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            In Career Path Rooms, Student Connect discussions, and public forums, your full name, student ID, and college email are never revealed to peer students. Pseudonyms (such as <em>Anonymous Student #1042</em>) are automatically generated. The platform maintains an internal privacy-preserving linkage accessible only to authorized administrators for anti-abuse and moderation purposes.
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+            To encourage candid academic discussions, mentorship across batches, and fearless reporting of concerns, student identities are masked with pseudonyms across Career Path Rooms, Student Connect discussions, and Grievance tickets. However, an encrypted internal mapping is maintained in accordance with cybersecurity regulations to ensure accountability in cases of harassment, defamation, or security threats.
           </p>
         </section>
 
-        {/* 3. Strict Daily Message Limits */}
-        <section className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-            <Clock className="w-4 h-4 text-teal-600" />
-            <h3>3. Strict Daily Limits & Membership Caps</h3>
+        {/* Article 3 */}
+        <section className="p-5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
+            <Clock className="w-4 h-4 text-brand-700 dark:text-brand-400 shrink-0" />
+            <h3>Article 3: Rate Limiting & Room Membership Quotas</h3>
           </div>
-          <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed space-y-1.5">
-            <p>To preserve high-signal conversations and prevent spam, server-enforced quotas apply:</p>
+          <div className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed space-y-2 font-sans">
+            <p>To preserve high academic signal, combat spam, and encourage focused preparation, strict server-side quotas apply:</p>
             <ul className="list-disc pl-5 space-y-1 text-slate-700 dark:text-slate-300">
-              <li><strong>Career Path Rooms:</strong> Maximum of <strong>2 rooms joined simultaneously</strong>. Leave one before joining another.</li>
-              <li><strong>Career Rooms Messaging:</strong> Maximum of <strong>10 messages per day</strong>. Resets at 00:00 campus time.</li>
-              <li><strong>Student Connect:</strong> Maximum of <strong>10 messages per day</strong> across all threads.</li>
-              <li><strong>Student Issues:</strong> Maximum of <strong>2 private concern submissions per day</strong> to ensure thorough review.</li>
+              <li><strong>Career Path Membership:</strong> Each student may concurrently join a maximum of <strong>2 career rooms</strong>. Students must depart one room before enrolling in another.</li>
+              <li><strong>Career Discussion Quota:</strong> Each student may publish up to <strong>10 messages per calendar day</strong> across Career Path Rooms (resetting daily at 00:00 IST).</li>
+              <li><strong>Student Connect Quota:</strong> Limited to <strong>10 messages/replies per calendar day</strong>.</li>
+              <li><strong>Grievance Submissions:</strong> Maximum of <strong>2 private concern tickets per day</strong> to ensure every incident is investigated with administrative rigor.</li>
             </ul>
           </div>
         </section>
 
-        {/* 4. Academic Materials & Copyright */}
-        <section className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-            <BookOpen className="w-4 h-4 text-teal-600" />
-            <h3>4. Academic Resource Sharing & Copyright</h3>
+        {/* Article 4 */}
+        <section className="p-5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
+            <BookOpen className="w-4 h-4 text-brand-700 dark:text-brand-400 shrink-0" />
+            <h3>Article 4: Academic Resources & Copyright Integrity</h3>
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            Students are permitted to share personal lecture summaries, previous year question papers (PYQs), open-source code, and educational references. Uploading confidential examination questions prior to scheduled exam slots, proprietary non-licensed textbooks, or malicious files will result in immediate file removal, account suspension, and referral to the academic disciplinary committee.
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+            The Study Materials repository is intended for lecture notes, past exam question papers (PYQs), lab manuals, and educational summaries. Uploading leaked or ongoing examination question papers, unapproved proprietary software, copyrighted textbooks without license, or malicious executables will lead to immediate file removal and referral to the Proctorial Board.
           </p>
         </section>
 
-        {/* 5. Facility Bookings & Anti-Double-Booking */}
-        <section className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-            <AlertTriangle className="w-4 h-4 text-teal-600" />
-            <h3>5. Facility Reservations & Booking Conduct</h3>
+        {/* Article 5 */}
+        <section className="p-5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
+            <Building2 className="w-4 h-4 text-brand-700 dark:text-brand-400 shrink-0" />
+            <h3>Article 5: Facility & Slot Booking Governance</h3>
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            College facilities (Robotics Lab, Auditorium, Sports Complex, Seminar Halls) are booked on an approval basis. Double-booking and overlapping reservations are strictly prevented by transactional database constraints. Any club failing to utilize approved slots without prior cancellation may forfeit booking privileges for the semester.
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+            Campus resources (Auditoriums, Seminar Halls, Robotics Lab, Sports Courts) are subject to automated transactional anti-double-booking checks. Submissions must specify legitimate student club or academic purposes. Reservations remain provisional until reviewed and sanctioned by the respective facility officer.
           </p>
         </section>
 
-        {/* 6. Harassment & Prohibited Conduct */}
-        <section className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-            <Shield className="w-4 h-4 text-teal-600" />
-            <h3>6. Zero Tolerance Policy for Harassment & Misuse</h3>
+        {/* Article 6 */}
+        <section className="p-5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+            <h3>Article 6: Proctorial Sanctions & Compliance Action</h3>
           </div>
-          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            The anonymity provided by the platform is a privilege to encourage safe academic discourse and constructive welfare reporting. Hate speech, targeted harassment, cyberbullying, defamation of faculty or peers, and doxxing are strictly prohibited. The administration reserves all rights to suspend offending accounts and pursue institutional disciplinary proceedings.
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+            Violations of these regulations will result in temporary suspension of messaging quotas, revoking of booking rights, or permanent expulsion from the digital community, without prejudice to statutory disciplinary proceedings instituted under institute statutes.
           </p>
         </section>
       </div>

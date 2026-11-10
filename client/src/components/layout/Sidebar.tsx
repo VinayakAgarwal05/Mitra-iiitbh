@@ -16,7 +16,7 @@ import {
   Moon,
   Sun,
   X,
-  Sparkles,
+  GraduationCap,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -41,12 +41,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: 'Career Path Rooms', path: '/career-rooms', icon: Briefcase },
     { name: 'Study Materials', path: '/study-materials', icon: BookOpen },
     { name: 'College Contacts', path: '/contacts', icon: Users },
-    { name: 'Interactive Calendar', path: '/calendar', icon: Calendar },
-    { name: 'Slot Booking', path: '/slot-booking', icon: Clock },
+    { name: 'Campus Calendar', path: '/calendar', icon: Calendar },
+    { name: 'Facility Booking', path: '/slot-booking', icon: Clock },
     { name: 'Student Connect', path: '/student-connect', icon: MessageSquare },
-    { name: 'Student Issues', path: '/student-issues', icon: AlertCircle },
+    { name: 'Grievance & Issues', path: '/student-issues', icon: AlertCircle },
     { name: 'Profile & Settings', path: '/profile', icon: User },
-    { name: 'Terms & Conditions', path: '/terms', icon: FileText },
+    { name: 'Regulations & Terms', path: '/terms', icon: FileText },
   ];
 
   return (
@@ -54,42 +54,47 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Mobile Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs lg:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Branding Header */}
-        <div className="flex items-center justify-between h-18 px-5 border-b border-slate-100 dark:border-slate-800/80">
+        {/* Institutional Branding Header */}
+        <div className="flex items-center justify-between h-20 px-5 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="font-bold text-base tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
-                COLLEGE CONNECT
+            <img
+              src="/images/iiitbh_logo.png"
+              alt="IIIT Bhagalpur Crest"
+              className="w-10 h-10 object-contain bg-white p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs shrink-0"
+            />
+            <div className="min-w-0">
+              <h1 className="font-bold text-xs tracking-tight text-slate-900 dark:text-white uppercase truncate">
+                IIIT Bhagalpur
               </h1>
-              <p className="text-[11px] font-medium text-teal-600 dark:text-teal-400">
-                IIITBH Mitra Portal
+              <p className="text-[11px] font-semibold text-brand-700 dark:text-brand-400 truncate">
+                Mitra • College Connect
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+            className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 lg:hidden"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {/* Navigation Section */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+          <div className="px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
+            Campus Workspace
+          </div>
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -98,10 +103,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 to={item.path}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                     isActive
-                      ? 'bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 font-semibold shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200'
+                      ? 'bg-blue-50 text-blue-900 dark:bg-blue-950/60 dark:text-blue-200 font-semibold border-l-3 border-blue-700 dark:border-blue-500'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200'
                   }`
                 }
               >
@@ -112,112 +117,114 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           })}
 
           {isAdmin && (
-            <div className="pt-3 mt-3 border-t border-slate-200 dark:border-slate-800">
-              <div className="px-3 mb-2 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+            <div className="pt-4 mt-3 border-t border-slate-200 dark:border-slate-800">
+              <div className="px-3 pb-1.5 text-[10px] font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
                 Administration
               </div>
               <NavLink
                 to="/admin"
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                     isActive
-                      ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 font-semibold shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200'
+                      ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white font-semibold border-l-3 border-slate-800 dark:border-slate-300'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200'
                   }`
                 }
               >
-                <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
-                <span>Admin Dashboard</span>
+                <ShieldCheck className="w-4 h-4 text-slate-700 dark:text-slate-300 shrink-0" />
+                <span>Admin Command Center</span>
               </NavLink>
             </div>
           )}
         </nav>
 
-        {/* Daily Message Usage Widget */}
+        {/* Daily Quota Tracking (Structured & Professional) */}
         {dailyUsage && (
-          <div className="px-4 py-3 mx-3 my-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold text-slate-700 dark:text-slate-200">
-                Daily Message Limits
-              </span>
-              <span className="text-[10px] text-teal-600 dark:text-teal-400 font-mono">
-                Resets 00:00
-              </span>
+          <div className="p-3 mx-3 mb-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-[11px]">
+            <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-200/60 dark:border-slate-700/60 font-semibold text-slate-700 dark:text-slate-300">
+              <span>Daily Student Allowances</span>
+              <span className="font-mono text-[10px] text-slate-400 font-normal">Resets 00:00 IST</span>
             </div>
-            <div className="space-y-1.5 text-slate-600 dark:text-slate-400">
-              <div className="flex justify-between items-center">
-                <span>Career Rooms:</span>
-                <span className="font-mono font-medium text-slate-900 dark:text-white">
-                  {dailyUsage.careerRoom.remaining}/10 left
-                </span>
-              </div>
-              <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-teal-500 h-full rounded-full transition-all"
-                  style={{ width: `${(dailyUsage.careerRoom.used / 10) * 100}%` }}
-                />
-              </div>
-
-              <div className="flex justify-between items-center pt-1">
-                <span>Student Connect:</span>
-                <span className="font-mono font-medium text-slate-900 dark:text-white">
-                  {dailyUsage.studentConnect.remaining}/10 left
-                </span>
-              </div>
-              <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-blue-500 h-full rounded-full transition-all"
-                  style={{ width: `${(dailyUsage.studentConnect.used / 10) * 100}%` }}
-                />
+            <div className="space-y-1.5">
+              <div>
+                <div className="flex justify-between text-slate-600 dark:text-slate-400 text-[10px]">
+                  <span>Career Rooms</span>
+                  <span className="font-mono font-medium text-slate-900 dark:text-slate-200">
+                    {dailyUsage.careerRoom.remaining}/10 left
+                  </span>
+                </div>
+                <div className="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mt-0.5">
+                  <div
+                    className="bg-blue-600 h-full rounded-full transition-all"
+                    style={{ width: `${(dailyUsage.careerRoom.used / 10) * 100}%` }}
+                  />
+                </div>
               </div>
 
-              <div className="flex justify-between items-center pt-1">
-                <span>Private Issues:</span>
-                <span className="font-mono font-medium text-slate-900 dark:text-white">
-                  {dailyUsage.studentIssue.remaining}/2 left
-                </span>
+              <div>
+                <div className="flex justify-between text-slate-600 dark:text-slate-400 text-[10px]">
+                  <span>Student Connect</span>
+                  <span className="font-mono font-medium text-slate-900 dark:text-slate-200">
+                    {dailyUsage.studentConnect.remaining}/10 left
+                  </span>
+                </div>
+                <div className="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mt-0.5">
+                  <div
+                    className="bg-slate-600 dark:bg-slate-400 h-full rounded-full transition-all"
+                    style={{ width: `${(dailyUsage.studentConnect.used / 10) * 100}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-amber-500 h-full rounded-full transition-all"
-                  style={{ width: `${(dailyUsage.studentIssue.used / 2) * 100}%` }}
-                />
+
+              <div>
+                <div className="flex justify-between text-slate-600 dark:text-slate-400 text-[10px]">
+                  <span>Private Issues</span>
+                  <span className="font-mono font-medium text-slate-900 dark:text-slate-200">
+                    {dailyUsage.studentIssue.remaining}/2 left
+                  </span>
+                </div>
+                <div className="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mt-0.5">
+                  <div
+                    className="bg-amber-600 h-full rounded-full transition-all"
+                    style={{ width: `${(dailyUsage.studentIssue.used / 2) * 100}%` }}
+                  />
+                </div>
               </div>
             </div>
           </div>
         )}
 
         {/* User Footer Profile & Settings */}
-        <div className="p-3 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50">
-          <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+          <div className="flex items-center justify-between gap-2 px-1 py-1">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 font-bold flex items-center justify-center text-xs shrink-0">
+              <div className="w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold border border-slate-200 dark:border-slate-700 flex items-center justify-center text-xs shrink-0">
                 {user?.full_name?.charAt(0) || 'U'}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                   {user?.full_name}
                 </p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 capitalize truncate">
-                  {user?.role === 'super_admin' ? 'Super Admin' : user?.role || 'Student'}
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                  {user?.role === 'super_admin' ? 'Super Admin' : user?.department || 'Student'}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-0.5 shrink-0">
               <button
                 onClick={toggleTheme}
                 title="Toggle Theme"
-                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
-                {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                {theme === 'light' ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
               </button>
               <button
                 onClick={handleLogout}
-                title="Log Out"
-                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                title="Sign Out"
+                className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
