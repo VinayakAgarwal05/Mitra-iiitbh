@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: college_connect_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-college_connect}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: college_connect_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      DATABASE_CLIENT: pg
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-college_connect}
+      JWT_SECRET: ${JWT_SECRET:-college_connect_prod_secret_key_2026}
+      WHITELISTED_DOMAINS: iiitbh.ac.in,college.edu
+      TIMEZONE: Asia/Kolkata
+      MESSAGE_LIMIT_CAREER: 10
+      MESSAGE_LIMIT_CONNECT: 10
+      ISSUE_LIMIT_DAILY: 2
+      CAREER_ROOM_MEMBERSHIP_LIMIT: 2
+    ports:
+      - "5001:5001"
+    volumes:
+      - app_uploads:/app/server/uploads
+
+volumes:
+  pgdata:
+  app_uploads:
