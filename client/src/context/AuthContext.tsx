@@ -40,10 +40,25 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('college_connect_token'));
+  const [token, setToken] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('college_connect_token');
+    } catch {
+      return null;
+    }
+  });
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('college_connect_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('college_connect_user');
+      if (!saved || saved === 'undefined' || saved === 'null') return null;
+      return JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed to parse cached user:', e);
+      try {
+        localStorage.removeItem('college_connect_user');
+      } catch {}
+      return null;
+    }
   });
   const [dailyUsage, setDailyUsage] = useState<DailyUsage | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
