@@ -54,13 +54,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(res.data.user);
       setDailyUsage(res.data.dailyUsage);
       localStorage.setItem('college_connect_user', JSON.stringify(res.data.user));
-    } catch (err) {
-      // If token invalid, clear
-      setToken(null);
-      setUser(null);
-      setDailyUsage(null);
-      localStorage.removeItem('college_connect_token');
-      localStorage.removeItem('college_connect_user');
+    } catch (err: any) {
+      // ONLY clear credentials if the server explicitly rejected the token with 401
+      if (err?.response?.status === 401) {
+        setToken(null);
+        setUser(null);
+        setDailyUsage(null);
+        localStorage.removeItem('college_connect_token');
+        localStorage.removeItem('college_connect_user');
+      } else {
+        // Network timeout, server waking up, or non-auth error: preserve the local session
+        console.warn('Could not refresh profile from server, preserving cached session:', err?.message);
+      }
     } finally {
       setIsLoading(false);
     }

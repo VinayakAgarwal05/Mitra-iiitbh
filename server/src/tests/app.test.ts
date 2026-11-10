@@ -99,6 +99,27 @@ describe('COLLEGE CONNECT — Full-Stack Verification Test Suite', () => {
       expect(res.body.user.email).toBe('student1@college.edu');
     });
 
+    it('should return user profile and daily message usage on GET /api/auth/me', async () => {
+      const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: 'student1@college.edu',
+          password: 'Student@123',
+        });
+
+      const res = await request(app)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${loginRes.body.token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.user).toBeDefined();
+      expect(res.body.user.email).toBe('student1@college.edu');
+      expect(res.body.dailyUsage).toBeDefined();
+      expect(res.body.dailyUsage.careerRoom).toBeDefined();
+      expect(res.body.dailyUsage.studentConnect).toBeDefined();
+      expect(res.body.dailyUsage.studentIssue).toBeDefined();
+    });
+
     it('should protect routes from unauthorized access without token', async () => {
       const res = await request(app).get('/api/career-rooms');
       expect(res.status).toBe(401);

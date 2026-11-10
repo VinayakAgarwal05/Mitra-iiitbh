@@ -353,4 +353,33 @@ router.post('/logout', authenticate, async (req: Request, res: Response): Promis
   res.status(200).json({ message: 'Logged out successfully.' });
 });
 
+// 9. GET CURRENT USER PROFILE & DAILY USAGE (/api/auth/me)
+router.get('/me', authenticate, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const user = await db('users').where({ id: req.user!.id }).first();
+    if (!user) {
+      res.status(404).json({ error: 'User account not found.' });
+      return;
+    }
+
+    const dailyUsage = await getUserDailyUsage(user.id);
+
+    res.status(200).json({
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        roll_number: user.roll_number,
+        academic_year: user.academic_year,
+        department: user.department,
+        role: user.role,
+        is_verified: !!user.is_verified,
+      },
+      dailyUsage,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;
