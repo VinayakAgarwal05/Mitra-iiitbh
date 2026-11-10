@@ -132,7 +132,8 @@ router.post('/', async (req: Request, res: Response, next: NextFunction): Promis
         club_or_society: club_or_society.trim(),
         purpose: purpose.trim(),
         description: description.trim(),
-        status: 'pending',
+        status: 'approved', // Confirmed and active on college calendar immediately
+        reviewed_at: new Date(),
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -164,7 +165,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction): Promis
     });
 
     res.status(201).json({
-      message: 'Booking request submitted successfully! Awaiting administrator approval.',
+      message: 'Facility slot booked and confirmed successfully! It is now updated on the Interactive Calendar.',
       booking: result.booking,
     });
   } catch (err) {

@@ -66,9 +66,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchProfile = async () => {
     try {
       const res = await api.get('/auth/me');
-      setUser(res.data.user);
-      setDailyUsage(res.data.dailyUsage);
-      localStorage.setItem('college_connect_user', JSON.stringify(res.data.user));
+      if (res.data && typeof res.data === 'object' && res.data.user) {
+        setUser(res.data.user);
+        if (res.data.dailyUsage) setDailyUsage(res.data.dailyUsage);
+        localStorage.setItem('college_connect_user', JSON.stringify(res.data.user));
+      } else {
+        console.warn('Received non-user response from /auth/me, preserving existing session');
+      }
     } catch (err: any) {
       // ONLY clear credentials if the server explicitly rejected the token with 401
       if (err?.response?.status === 401) {
@@ -123,7 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         token,
-        isAuthenticated: !!token && !!user?.is_verified,
+        isAuthenticated: !!token && !!user && Boolean(user.is_verified ?? true),
         isAdmin,
         isLoading,
         dailyUsage,
