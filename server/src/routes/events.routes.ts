@@ -10,14 +10,79 @@ const router = Router();
 
 router.use(authenticate, requireVerified);
 
-// 1. GET ALL EVENTS (WITH SEARCH & FILTERS)
+// Helper to format a booking record as a calendar event
+async function getBookingAsEvent(bookingId: string) {
+  const cleanId = bookingId.replace(/^booking-/, '');
+  const b = await db('bookings')
+    .join('booking_slots', 'bookings.slot_id', 'booking_slots.id')
+    .join('users', 'bookings.user_id', 'users.id')
+    .where('bookings.id', cleanId)
+    .select(
+      'bookings.id as booking_id',
+      'bookings.user_id',
+      'bookings.club_or_society',
+      'bookings.purpose',
+      'bookings.description',
+      'bookings.status as booking_status',
+      'bookings.created_at',
+      'booking_slots.facility_or_club',
+      'booking_slots.slot_date',
+      'booking_slots.start_time',
+      'booking_slots.end_time',
+      'users.full_name',
+      'users.email'
+    )
+    .first();
+
+  if (!b) return null;
+
+  const startTime = `${b.slot_date}T${b.start_time}:00`;
+  const endTime = `${b.slot_date}T${b.end_time}:00`;
+  const isApproved = b.booking_status === 'approved';
+
+  return {
+    id: `booking-${b.booking_id}`,
+    title: `${isApproved ? '📌 [Booked Slot]' : '⏳ [Pending Slot]'} ${b.club_or_society}: ${b.purpose}`,
+    category: 'booked_slot',
+    description: `Facility Reserved: ${b.facility_or_club}\nTime: ${b.start_time} - ${b.end_time}\nStatus: ${b.booking_status.toUpperCase()}\n\nPurpose:\n${b.purpose}\n\nDetails:\n${b.description}`,
+    start_time: startTime,
+    end_time: endTime,
+    venue: b.facility_or_club,
+    organizer: b.club_or_society,
+    coordinator_name: b.full_name || 'Club Representative',
+    coordinator_contact: b.email || 'Via Mitra Platform',
+    registration_link: null,
+    registration_deadline: null,
+    eligibility: `Club members / Authorized attendees (${b.facility_or_club})`,
+    preparation_notes: `Authorized slot reservation. Please arrive 10 minutes prior to the scheduled slot time (${b.start_time}). Ensure the facility is left in clean, orderly condition.`,
+    attachments: [],
+    faqs: [
+      {
+        question: 'Can other students use this facility during this time?',
+        answer: `No, this facility has been reserved for the scheduled activity by ${b.club_or_society}.`,
+      },
+      {
+        question: 'Who should I contact regarding this slot reservation?',
+        answer: `Please contact the coordinator ${b.full_name || 'Club Representative'} (${b.email || 'Institute Portal'}).`,
+      },
+    ],
+    status: isApproved ? 'confirmed' : 'pending',
+    is_slot_booking: true,
+    booking_status: b.booking_status,
+    created_at: b.created_at,
+    updated_at: b.created_at,
+  };
+}
+
+// 1. GET ALL EVENTS (WITH SEARCH & FILTERS + BOOKED SLOTS)
 router.get('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { category, search, month, year } = req.query;
+    const { category, search } = req.query;
+    const currentUserId = req.user?.id;
 
     let query = db('events').orderBy('start_time', 'asc');
 
-    if (category && typeof category === 'string' && category !== 'all') {
+    if (category && typeof category === 'string' && category !== 'all' && category !== 'booked_slot') {
       query = query.where({ category });
     }
 
@@ -31,8 +96,103 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
       });
     }
 
-    const events = await query;
-    res.status(200).json(events);
+    let events = await query;
+    if (category === 'booked_slot') {
+      events = [];
+    }
+
+    // Query booked slots to integrate seamlessly with the interactive calendar
+    let bookingQuery = db('bookings')
+      .join('booking_slots', 'bookings.slot_id', 'booking_slots.id')
+      .join('users', 'bookings.user_id', 'users.id')
+      .where(function () {
+        // Include all approved bookings, and also pending bookings created by the requesting user
+        this.where('bookings.status', 'approved');
+        if (currentUserId) {
+          this.orWhere(function () {
+            this.where('bookings.user_id', currentUserId).whereIn('bookings.status', ['pending', 'approved']);
+          });
+        }
+      })
+      .select(
+        'bookings.id as booking_id',
+        'bookings.user_id',
+        'bookings.club_or_society',
+        'bookings.purpose',
+        'bookings.description',
+        'bookings.status as booking_status',
+        'bookings.created_at',
+        'booking_slots.facility_or_club',
+        'booking_slots.slot_date',
+        'booking_slots.start_time',
+        'booking_slots.end_time',
+        'users.full_name',
+        'users.email'
+      );
+
+    if (search && typeof search === 'string') {
+      const s = `%${search}%`;
+      bookingQuery = bookingQuery.where(function () {
+        this.where('bookings.club_or_society', 'like', s)
+          .orWhere('bookings.purpose', 'like', s)
+          .orWhere('bookings.description', 'like', s)
+          .orWhere('booking_slots.facility_or_club', 'like', s);
+      });
+    }
+
+    const bookings = await bookingQuery;
+
+    const formattedBookingEvents = bookings.map((b) => {
+      const startTime = `${b.slot_date}T${b.start_time}:00`;
+      const endTime = `${b.slot_date}T${b.end_time}:00`;
+      const isApproved = b.booking_status === 'approved';
+
+      return {
+        id: `booking-${b.booking_id}`,
+        title: `${isApproved ? '📌 [Booked Slot]' : '⏳ [Pending Slot]'} ${b.club_or_society}: ${b.purpose}`,
+        category: 'booked_slot',
+        description: `Facility Reserved: ${b.facility_or_club}\nTime: ${b.start_time} - ${b.end_time}\nStatus: ${b.booking_status.toUpperCase()}\n\nPurpose:\n${b.purpose}\n\nDetails:\n${b.description}`,
+        start_time: startTime,
+        end_time: endTime,
+        venue: b.facility_or_club,
+        organizer: b.club_or_society,
+        coordinator_name: b.full_name || 'Club Representative',
+        coordinator_contact: b.email || 'Via Mitra Platform',
+        registration_link: null,
+        registration_deadline: null,
+        eligibility: `Club members / Authorized attendees (${b.facility_or_club})`,
+        preparation_notes: `Authorized slot reservation. Please arrive 10 minutes prior to the scheduled slot time (${b.start_time}). Ensure the facility is left in clean, orderly condition.`,
+        attachments: JSON.stringify([]),
+        faqs: JSON.stringify([
+          {
+            question: 'Can other students use this facility during this time?',
+            answer: `No, this facility has been reserved for the scheduled activity by ${b.club_or_society}.`,
+          },
+          {
+            question: 'Who should I contact regarding this slot reservation?',
+            answer: `Please contact the coordinator ${b.full_name || 'Club Representative'} (${b.email || 'Institute Portal'}).`,
+          },
+        ]),
+        status: isApproved ? 'confirmed' : 'pending',
+        is_slot_booking: true,
+        booking_status: b.booking_status,
+        created_at: b.created_at,
+        updated_at: b.created_at,
+      };
+    });
+
+    let combinedEvents: any[] = [];
+    if (!category || category === 'all') {
+      combinedEvents = [...events, ...formattedBookingEvents];
+    } else if (category === 'booked_slot' || category === 'club') {
+      combinedEvents = [...events, ...formattedBookingEvents];
+    } else {
+      combinedEvents = events;
+    }
+
+    combinedEvents.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+
+    res.status(200).json(combinedEvents);
   } catch (err) {
     next(err);
   }
@@ -42,6 +202,17 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
 router.get('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
+
+    if (id.startsWith('booking-')) {
+      const bookingEvent = await getBookingAsEvent(id);
+      if (!bookingEvent) {
+        res.status(404).json({ error: 'Booked slot event not found.' });
+        return;
+      }
+      res.status(200).json(bookingEvent);
+      return;
+    }
+
     const event = await db('events').where({ id }).first();
 
     if (!event) {
@@ -73,7 +244,13 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction): Prom
 router.get('/:id/ics', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const event = await db('events').where({ id }).first();
+
+    let event: any = null;
+    if (id.startsWith('booking-')) {
+      event = await getBookingAsEvent(id);
+    } else {
+      event = await db('events').where({ id }).first();
+    }
 
     if (!event) {
       res.status(404).json({ error: 'Event not found.' });

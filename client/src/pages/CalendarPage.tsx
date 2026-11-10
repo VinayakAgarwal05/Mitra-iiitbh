@@ -57,6 +57,7 @@ export const CalendarPage: React.FC = () => {
 
   const categories = [
     'all',
+    'booked_slot',
     'fest',
     'tech',
     'cultural',
@@ -151,11 +152,15 @@ export const CalendarPage: React.FC = () => {
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600"
+          className="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
         >
           {categories.map((cat) => (
             <option key={cat} value={cat}>
-              {cat === 'all' ? 'All Event Types' : cat.toUpperCase()}
+              {cat === 'all'
+                ? 'All Events & Booked Slots'
+                : cat === 'booked_slot'
+                ? '📌 Booked Facility Slots'
+                : cat.replace('_', ' ').toUpperCase()}
             </option>
           ))}
         </select>
@@ -242,7 +247,14 @@ export const CalendarPage: React.FC = () => {
                       <button
                         key={evt.id}
                         onClick={() => setSelectedEvent(evt)}
-                        className="w-full text-left p-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[10px] font-semibold truncate hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                        className={`w-full text-left p-1 rounded text-[10px] font-semibold truncate transition-all ${
+                          evt.is_slot_booking
+                            ? evt.booking_status === 'approved'
+                              ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 hover:bg-teal-500/25'
+                              : 'bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        }`}
+                        title={evt.title}
                       >
                         {evt.title}
                       </button>
@@ -265,12 +277,30 @@ export const CalendarPage: React.FC = () => {
             <div
               key={evt.id}
               onClick={() => setSelectedEvent(evt)}
-              className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+              className={`p-4 rounded-xl bg-white dark:bg-slate-900 border shadow-xs hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                evt.is_slot_booking
+                  ? evt.booking_status === 'approved'
+                    ? 'border-teal-500/30 bg-teal-500/[0.02]'
+                    : 'border-amber-500/30 bg-amber-500/[0.02]'
+                  : 'border-slate-200 dark:border-slate-800'
+              }`}
             >
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold uppercase text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
-                    {evt.category}
+                  <span
+                    className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded border ${
+                      evt.is_slot_booking
+                        ? evt.booking_status === 'approved'
+                          ? 'bg-teal-500/15 text-teal-300 border-teal-500/30'
+                          : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                        : 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-transparent'
+                    }`}
+                  >
+                    {evt.is_slot_booking
+                      ? evt.booking_status === 'approved'
+                        ? '📌 Facility Reserved'
+                        : '⏳ Pending Reservation'
+                      : evt.category}
                   </span>
                   <span className="text-xs text-slate-500">
                     Host: <strong className="text-slate-700 dark:text-slate-300">{evt.organizer}</strong>
@@ -300,7 +330,11 @@ export const CalendarPage: React.FC = () => {
                     e.stopPropagation();
                     setSelectedEvent(evt);
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs transition-colors"
+                  className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-colors ${
+                    evt.is_slot_booking
+                      ? 'bg-teal-500 hover:bg-teal-600 text-slate-950 font-semibold'
+                      : 'bg-slate-800 hover:bg-slate-700 text-white'
+                  }`}
                 >
                   View Details
                 </button>
@@ -316,8 +350,20 @@ export const CalendarPage: React.FC = () => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-xl w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-4 pb-3 border-b border-slate-200 dark:border-slate-800">
               <div>
-                <span className="text-[10px] font-semibold uppercase text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
-                  {selectedEvent.category}
+                <span
+                  className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded border ${
+                    selectedEvent.is_slot_booking
+                      ? selectedEvent.booking_status === 'approved'
+                        ? 'bg-teal-500/15 text-teal-300 border-teal-500/30'
+                        : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                      : 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-transparent'
+                  }`}
+                >
+                  {selectedEvent.is_slot_booking
+                    ? selectedEvent.booking_status === 'approved'
+                      ? '📌 Confirmed Facility Booking'
+                      : '⏳ Pending Booking Reservation'
+                    : selectedEvent.category}
                 </span>
                 <h2 className="text-base font-bold text-slate-900 dark:text-white mt-1.5">
                   {selectedEvent.title}
