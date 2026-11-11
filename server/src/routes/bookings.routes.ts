@@ -4,27 +4,108 @@ import { v4 as uuidv4 } from 'uuid';
 import { db } from '../config/database';
 import { authenticate, requireVerified, requireRole } from '../middleware/auth';
 import { logAuditEvent } from '../services/auditLog.service';
+import { getIO } from '../sockets/chatHandler';
 
 const router = Router();
 
 router.use(authenticate, requireVerified);
+
+export const ALL_CAMPUS_FACILITIES = [
+  'Robotics & IoT Innovation Lab',
+  'Main Campus Auditorium',
+  'Computer Centre Lab 1 (High Performance Lab)',
+  'Computer Centre Lab 2 (Software Development Lab)',
+  'High Performance Computing & AI Cluster Lab',
+  'VLSI & Embedded Systems Design Lab',
+  'Seminar Hall 1 (Administrative Complex)',
+  'Seminar Hall 2 (Academic Block)',
+  'Music & Cultural Society Room (Tarang)',
+  'Basketball & Volleyball Sports Court',
+  'Badminton & Table Tennis Indoor Pavilion',
+  'Sports Ground & Cricket Pavilion',
+  'Open Air Amphitheatre & Student Quadrangle',
+  'Central Library Discussion & Study Vault Room',
+  'Conference Room A (Senate & Faculty Hall)',
+];
+
+const STANDARD_SLOT_TIMES = [
+  { start: '09:00', end: '12:00' },
+  { start: '14:00', end: '17:00' },
+  { start: '17:30', end: '20:30' },
+];
+
+// Helper to auto-ensure slots exist for requested facility / date range
+async function ensureSlotsAvailable(targetDate?: string, targetFacility?: string) {
+  try {
+    const datesToEnsure: string[] = [];
+    if (targetDate) {
+      datesToEnsure.push(targetDate);
+    } else {
+      const now = Date.now();
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(now + i * 24 * 60 * 60 * 1000);
+        datesToEnsure.push(d.toISOString().split('T')[0]);
+      }
+    }
+
+    const facilitiesToEnsure =
+      targetFacility && targetFacility !== 'all' ? [targetFacility] : ALL_CAMPUS_FACILITIES;
+
+    for (const dateStr of datesToEnsure) {
+      for (const fac of facilitiesToEnsure) {
+        for (const t of STANDARD_SLOT_TIMES) {
+          const cleanFac = fac.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12);
+          const cleanStart = t.start.replace(':', '');
+          const slotId = `slot-${cleanFac}-${dateStr}-${cleanStart}`;
+
+          const existing = await db('booking_slots')
+            .where({ slot_date: dateStr, facility_or_club: fac, start_time: t.start })
+            .first();
+
+          if (!existing) {
+            await db('booking_slots').insert({
+              id: slotId,
+              facility_or_club: fac,
+              slot_date: dateStr,
+              start_time: t.start,
+              end_time: t.end,
+              is_available: true,
+              max_capacity: 1,
+              notes: 'Equipped with campus infrastructure, smart podium, and climate control.',
+              created_at: new Date(),
+              updated_at: new Date(),
+            });
+          }
+        }
+      }
+    }
+  } catch (err) {
+    // Non-fatal if slots already created concurrently
+  }
+}
 
 // 1. GET AVAILABLE SLOTS (FILTER BY FACILITY / DATE)
 router.get('/slots', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { date, facility } = req.query;
 
+    const dateStr = typeof date === 'string' ? date : undefined;
+    const facStr = typeof facility === 'string' ? facility : undefined;
+
+    // Dynamically ensure slots exist for query parameters
+    await ensureSlotsAvailable(dateStr, facStr);
+
     let query = db('booking_slots')
       .where({ is_available: true })
       .orderBy('slot_date', 'asc')
       .orderBy('start_time', 'asc');
 
-    if (date && typeof date === 'string') {
-      query = query.where({ slot_date: date });
+    if (dateStr) {
+      query = query.where({ slot_date: dateStr });
     }
 
-    if (facility && typeof facility === 'string' && facility !== 'all') {
-      query = query.where({ facility_or_club: facility });
+    if (facStr && facStr !== 'all') {
+      query = query.where({ facility_or_club: facStr });
     }
 
     const slots = await query;
@@ -55,6 +136,10 @@ router.get('/slots', async (req: Request, res: Response, next: NextFunction): Pr
 // 2. SUBMIT A BOOKING REQUEST (WITH DOUBLE-BOOKING PREVENTION)
 const bookingRequestSchema = z.object({
   slot_id: z.string().min(1, 'Slot ID is required'),
+  facility_or_club: z.string().optional(),
+  slot_date: z.string().optional(),
+  start_time: z.string().optional(),
+  end_time: z.string().optional(),
   club_or_society: z.string().min(2, 'Club or society name is required'),
   purpose: z.string().min(3, 'Purpose is required'),
   description: z.string().min(10, 'Please describe the booking purpose in detail (min 10 chars)'),
@@ -63,11 +148,44 @@ const bookingRequestSchema = z.object({
 router.post('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { slot_id, club_or_society, purpose, description } = bookingRequestSchema.parse(req.body);
+    const {
+      slot_id,
+      facility_or_club,
+      slot_date,
+      start_time,
+      end_time,
+      club_or_society,
+      purpose,
+      description,
+    } = bookingRequestSchema.parse(req.body);
 
     // Transaction to safely avoid race conditions and double bookings
     const result = await db.transaction(async (trx) => {
-      const slot = await trx('booking_slots').where({ id: slot_id }).first();
+      let slot = await trx('booking_slots').where({ id: slot_id }).first();
+
+      // If slot row not found, dynamically upsert using provided slot details
+      if (!slot) {
+        const fac = facility_or_club || 'Campus Academic Facility';
+        const sDate = slot_date || new Date().toISOString().split('T')[0];
+        const sStart = start_time || '09:00';
+        const sEnd = end_time || '12:00';
+
+        await trx('booking_slots').insert({
+          id: slot_id,
+          facility_or_club: fac,
+          slot_date: sDate,
+          start_time: sStart,
+          end_time: sEnd,
+          is_available: true,
+          max_capacity: 1,
+          notes: 'Auto-provisioned campus facility booking slot',
+          created_at: new Date(),
+          updated_at: new Date(),
+        });
+
+        slot = await trx('booking_slots').where({ id: slot_id }).first();
+      }
+
       if (!slot) {
         return { success: false, status: 404, error: 'The requested slot does not exist.' };
       }
@@ -110,7 +228,6 @@ router.post('/', async (req: Request, res: Response, next: NextFunction): Promis
         .where('booking_slots.slot_date', slot.slot_date)
         .where('bookings.status', 'approved')
         .where(function () {
-          // Time overlap check: startA < endB and endA > startB
           this.where('booking_slots.start_time', '<', slot.end_time)
             .andWhere('booking_slots.end_time', '>', slot.start_time);
         })
@@ -133,6 +250,8 @@ router.post('/', async (req: Request, res: Response, next: NextFunction): Promis
         purpose: purpose.trim(),
         description: description.trim(),
         status: 'pending', // Submits formal reservation request to administration for review
+        reviewer_id: null,
+        reviewer_notes: null,
         reviewed_at: null,
         created_at: new Date(),
         updated_at: new Date(),
@@ -144,9 +263,15 @@ router.post('/', async (req: Request, res: Response, next: NextFunction): Promis
         success: true,
         booking: {
           ...newBooking,
+          facility_or_club: slot.facility_or_club,
+          slot_date: slot.slot_date,
+          start_time: slot.start_time,
+          end_time: slot.end_time,
           facility: slot.facility_or_club,
           date: slot.slot_date,
           time: `${slot.start_time} - ${slot.end_time}`,
+          student_name: req.user?.full_name || 'Student Representative',
+          student_email: req.user?.email || 'student@iiitbh.ac.in',
         },
       };
     });
@@ -154,6 +279,14 @@ router.post('/', async (req: Request, res: Response, next: NextFunction): Promis
     if (!result.success) {
       res.status(result.status!).json({ error: result.error });
       return;
+    }
+
+    // Real-time broadcast to Admin Dashboard
+    try {
+      const io = getIO();
+      io?.emit('new_booking_request', result.booking);
+    } catch (e) {
+      // Socket might be uninitialized in some test harnesses
     }
 
     await logAuditEvent({
@@ -178,7 +311,7 @@ router.get('/my', async (req: Request, res: Response, next: NextFunction): Promi
   try {
     const userId = req.user!.id;
     const bookings = await db('bookings')
-      .join('booking_slots', 'bookings.slot_id', 'booking_slots.id')
+      .leftJoin('booking_slots', 'bookings.slot_id', 'booking_slots.id')
       .where('bookings.user_id', userId)
       .orderBy('bookings.created_at', 'desc')
       .select(
@@ -196,7 +329,15 @@ router.get('/my', async (req: Request, res: Response, next: NextFunction): Promi
         'booking_slots.end_time'
       );
 
-    res.status(200).json(bookings);
+    const safeBookings = bookings.map((b) => ({
+      ...b,
+      facility_or_club: b.facility_or_club || 'Campus Facility',
+      slot_date: b.slot_date || '',
+      start_time: b.start_time || '',
+      end_time: b.end_time || '',
+    }));
+
+    res.status(200).json(safeBookings);
   } catch (err) {
     next(err);
   }
@@ -223,6 +364,11 @@ router.patch('/:id/cancel', async (req: Request, res: Response, next: NextFuncti
       status: 'cancelled',
       updated_at: new Date(),
     });
+
+    try {
+      const io = getIO();
+      io?.emit('booking_status_updated', { id, status: 'cancelled' });
+    } catch (e) {}
 
     res.status(200).json({ message: 'Booking reservation has been cancelled.' });
   } catch (err) {

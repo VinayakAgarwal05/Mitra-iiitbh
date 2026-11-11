@@ -296,12 +296,17 @@ export const StudyMaterialsPage: React.FC = () => {
 
                 {mat.tags && (
                   <div className="flex flex-wrap gap-1 mt-2.5">
-                    {mat.tags.split(',').map((tag: string) => (
+                    {(typeof mat.tags === 'string'
+                      ? mat.tags.split(',')
+                      : Array.isArray(mat.tags)
+                      ? mat.tags
+                      : []
+                    ).map((tag: string) => (
                       <span
                         key={tag}
                         className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500"
                       >
-                        #{tag.trim()}
+                        #{typeof tag === 'string' ? tag.trim() : tag}
                       </span>
                     ))}
                   </div>

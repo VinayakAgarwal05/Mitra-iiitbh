@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 import {
   Clock,
   Calendar,
@@ -12,11 +13,11 @@ import {
   X,
   History,
 } from 'lucide-react';
-import api from '../api/client';
+import api, { getSocketUrl } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 export const SlotBookingPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [slots, setSlots] = useState<any[]>([]);
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,10 +42,12 @@ export const SlotBookingPage: React.FC = () => {
         }),
         api.get('/bookings/my'),
       ]);
-      setSlots(slotsRes.data);
-      setMyBookings(myRes.data);
+      setSlots(Array.isArray(slotsRes.data) ? slotsRes.data : []);
+      setMyBookings(Array.isArray(myRes.data) ? myRes.data : []);
     } catch (err) {
       console.error(err);
+      setSlots([]);
+      setMyBookings([]);
     } finally {
       setLoading(false);
     }
@@ -53,6 +56,31 @@ export const SlotBookingPage: React.FC = () => {
   useEffect(() => {
     fetchSlotsAndBookings();
   }, [selectedFacility, selectedDate]);
+
+  // Real-time synchronization for status updates
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'demo_user_bookings') {
+        fetchSlotsAndBookings();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    const socketUrl = getSocketUrl();
+    const socket = io(socketUrl || undefined, {
+      auth: { token },
+      transports: ['websocket', 'polling'],
+    });
+
+    socket.on('booking_status_updated', () => {
+      fetchSlotsAndBookings();
+    });
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      socket.disconnect();
+    };
+  }, [token]);
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +92,10 @@ export const SlotBookingPage: React.FC = () => {
     try {
       const res = await api.post('/bookings', {
         slot_id: activeSlot.id,
+        facility_or_club: activeSlot.facility_or_club,
+        slot_date: activeSlot.slot_date,
+        start_time: activeSlot.start_time,
+        end_time: activeSlot.end_time,
         club_or_society: clubName,
         purpose,
         description,

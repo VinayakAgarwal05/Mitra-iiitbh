@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 import {
   ShieldCheck,
   Users,
@@ -20,11 +21,11 @@ import {
   Building2,
   FileText,
 } from 'lucide-react';
-import api from '../api/client';
+import api, { getSocketUrl } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 export const AdminDashboardPage: React.FC = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, token } = useAuth();
   const [activeTab, setActiveTab] = useState<'metrics' | 'domains' | 'bookings' | 'issues' | 'users' | 'reports' | 'audit'>('metrics');
 
   const [metrics, setMetrics] = useState<any | null>(null);
@@ -64,54 +65,60 @@ export const AdminDashboardPage: React.FC = () => {
   const fetchDomains = async () => {
     try {
       const res = await api.get('/admin/domains');
-      setDomains(res.data || []);
+      setDomains(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setDomains([]);
     }
   };
 
   const fetchBookings = async () => {
     try {
       const res = await api.get('/admin/bookings', { params: { status: bookingFilter } });
-      setBookings(res.data || []);
+      setBookings(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setBookings([]);
     }
   };
 
   const fetchIssues = async () => {
     try {
       const res = await api.get('/admin/issues', { params: { status: issueFilter } });
-      setIssues(res.data || []);
+      setIssues(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setIssues([]);
     }
   };
 
   const fetchUsers = async () => {
     try {
       const res = await api.get('/admin/users');
-      setUsersList(res.data || []);
+      setUsersList(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setUsersList([]);
     }
   };
 
   const fetchReports = async () => {
     try {
       const res = await api.get('/admin/reports');
-      setReports(res.data || []);
+      setReports(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setReports([]);
     }
   };
 
   const fetchAuditLogs = async () => {
     try {
       const res = await api.get('/admin/audit-logs');
-      setAuditLogs(res.data || []);
+      setAuditLogs(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setAuditLogs([]);
     }
   };
 
@@ -127,6 +134,49 @@ export const AdminDashboardPage: React.FC = () => {
     if (activeTab === 'reports') fetchReports();
     if (activeTab === 'audit') fetchAuditLogs();
   }, [activeTab, bookingFilter, issueFilter]);
+
+  // Real-time synchronization for Admin Dashboard
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'demo_user_bookings' || e.key === 'demo_student_issues') {
+        fetchOverview();
+        if (activeTab === 'bookings') fetchBookings();
+        if (activeTab === 'issues') fetchIssues();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    const socketUrl = getSocketUrl();
+    const socket = io(socketUrl || undefined, {
+      auth: { token },
+      transports: ['websocket', 'polling'],
+    });
+
+    socket.on('new_booking_request', () => {
+      fetchOverview();
+      fetchBookings();
+    });
+
+    socket.on('booking_status_updated', () => {
+      fetchOverview();
+      fetchBookings();
+    });
+
+    socket.on('new_student_issue', () => {
+      fetchOverview();
+      fetchIssues();
+    });
+
+    socket.on('issue_status_updated', () => {
+      fetchOverview();
+      fetchIssues();
+    });
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      socket.disconnect();
+    };
+  }, [token, activeTab, bookingFilter, issueFilter]);
 
   // Actions
   const handleAddDomain = async (e: React.FormEvent) => {

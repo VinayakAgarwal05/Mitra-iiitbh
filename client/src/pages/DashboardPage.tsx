@@ -78,7 +78,7 @@ export const DashboardPage: React.FC = () => {
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
-                {dailyUsage.careerRoom.remaining}
+                {dailyUsage.careerRoom?.remaining ?? 10}
               </span>
               <span className="text-xs text-slate-500">/ 10 left today</span>
             </div>
@@ -86,7 +86,7 @@ export const DashboardPage: React.FC = () => {
             <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
               <div
                 className="bg-brand-700 h-full rounded-full transition-all duration-500"
-                style={{ width: `${(dailyUsage.careerRoom.remaining / 10) * 100}%` }}
+                style={{ width: `${((dailyUsage.careerRoom?.remaining ?? 10) / 10) * 100}%` }}
               />
             </div>
           </div>
@@ -98,14 +98,14 @@ export const DashboardPage: React.FC = () => {
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
-                {dailyUsage.studentConnect.remaining}
+                {dailyUsage.studentConnect?.remaining ?? 10}
               </span>
               <span className="text-xs text-slate-500">/ 10 left today</span>
             </div>
             <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
               <div
                 className="bg-brand-700 h-full rounded-full transition-all duration-500"
-                style={{ width: `${(dailyUsage.studentConnect.remaining / 10) * 100}%` }}
+                style={{ width: `${((dailyUsage.studentConnect?.remaining ?? 10) / 10) * 100}%` }}
               />
             </div>
           </div>
@@ -117,14 +117,14 @@ export const DashboardPage: React.FC = () => {
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
-                {dailyUsage.studentIssue.remaining}
+                {dailyUsage.studentIssue?.remaining ?? 2}
               </span>
               <span className="text-xs text-slate-500">/ 2 submissions/day</span>
             </div>
             <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
               <div
                 className="bg-amber-600 h-full rounded-full transition-all duration-500"
-                style={{ width: `${(dailyUsage.studentIssue.remaining / 2) * 100}%` }}
+                style={{ width: `${((dailyUsage.studentIssue?.remaining ?? 2) / 2) * 100}%` }}
               />
             </div>
           </div>

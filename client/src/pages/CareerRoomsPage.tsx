@@ -142,7 +142,7 @@ export const CareerRoomsPage: React.FC = () => {
         </div>
         {dailyUsage && (
           <span className="font-mono text-xs font-semibold">
-            Messages remaining: {dailyUsage.careerRoom.remaining}/10
+            Messages remaining: {dailyUsage.careerRoom?.remaining ?? 10}/10
           </span>
         )}
       </div>

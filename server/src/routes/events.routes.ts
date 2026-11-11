@@ -5,6 +5,7 @@ import * as ics from 'ics';
 import { db } from '../config/database';
 import { authenticate, requireVerified, requireRole } from '../middleware/auth';
 import { logAuditEvent } from '../services/auditLog.service';
+import { getIO } from '../sockets/chatHandler';
 
 const router = Router();
 
@@ -14,8 +15,8 @@ router.use(authenticate, requireVerified);
 async function getBookingAsEvent(bookingId: string) {
   const cleanId = bookingId.replace(/^booking-/, '');
   const b = await db('bookings')
-    .join('booking_slots', 'bookings.slot_id', 'booking_slots.id')
-    .join('users', 'bookings.user_id', 'users.id')
+    .leftJoin('booking_slots', 'bookings.slot_id', 'booking_slots.id')
+    .leftJoin('users', 'bookings.user_id', 'users.id')
     .where('bookings.id', cleanId)
     .select(
       'bookings.id as booking_id',
@@ -103,8 +104,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
 
     // Query booked slots to integrate seamlessly with the interactive calendar
     let bookingQuery = db('bookings')
-      .join('booking_slots', 'bookings.slot_id', 'booking_slots.id')
-      .join('users', 'bookings.user_id', 'users.id')
+      .leftJoin('booking_slots', 'bookings.slot_id', 'booking_slots.id')
+      .leftJoin('users', 'bookings.user_id', 'users.id')
       .where(function () {
         // Include all approved bookings, and also pending bookings created by the requesting user
         this.where('bookings.status', 'approved');
@@ -358,6 +359,11 @@ router.post(
 
       await db('events').insert(newEvent);
 
+      try {
+        const io = getIO();
+        io?.emit('new_campus_event', newEvent);
+      } catch (e) {}
+
       await logAuditEvent({
         userId: req.user!.id,
         action: 'CREATED_EVENT',
@@ -413,6 +419,11 @@ router.put(
           updated_at: new Date(),
         });
 
+      try {
+        const io = getIO();
+        io?.emit('event_updated', { id, ...data });
+      } catch (e) {}
+
       res.status(200).json({ message: 'Event updated successfully.' });
     } catch (err) {
       next(err);
@@ -423,7 +434,7 @@ router.put(
 // 6. DELETE EVENT (ADMIN ONLY)
 router.delete(
   '/:id',
-  requireRole('super_admin', 'admin'),
+  requireRole('super_admin', 'admin', 'representative'),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
@@ -432,6 +443,12 @@ router.delete(
         res.status(404).json({ error: 'Event not found.' });
         return;
       }
+
+      try {
+        const io = getIO();
+        io?.emit('event_deleted', { id });
+      } catch (e) {}
+
       res.status(200).json({ message: 'Event deleted successfully.' });
     } catch (err) {
       next(err);

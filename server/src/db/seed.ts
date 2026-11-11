@@ -375,29 +375,47 @@ export async function seedDatabase() {
   if (parseInt((slotCount as any)?.count || '0', 10) === 0) {
     console.log('Seeding booking slots for clubs and facilities...');
     const facilities = [
-      { name: 'Robotics & IoT Innovation Lab', times: [['10:00', '12:00'], ['14:00', '16:00'], ['16:30', '18:30']] },
-      { name: 'Main Campus Auditorium', times: [['09:00', '13:00'], ['14:00', '18:00'], ['18:30', '21:30']] },
-      { name: 'Music & Cultural Society Room', times: [['16:00', '18:00'], ['18:00', '20:00'], ['20:00', '22:00']] },
-      { name: 'Basketball & Sports Court', times: [['06:30', '08:30'], ['17:00', '19:00'], ['19:00', '21:00']] },
-      { name: 'Seminar Hall A (Computing Center)', times: [['11:00', '13:00'], ['14:30', '16:30']] },
+      'Robotics & IoT Innovation Lab',
+      'Main Campus Auditorium',
+      'Computer Centre Lab 1 (High Performance Lab)',
+      'Computer Centre Lab 2 (Software Development Lab)',
+      'High Performance Computing & AI Cluster Lab',
+      'VLSI & Embedded Systems Design Lab',
+      'Seminar Hall 1 (Administrative Complex)',
+      'Seminar Hall 2 (Academic Block)',
+      'Music & Cultural Society Room (Tarang)',
+      'Basketball & Volleyball Sports Court',
+      'Badminton & Table Tennis Indoor Pavilion',
+      'Sports Ground & Cricket Pavilion',
+      'Open Air Amphitheatre & Student Quadrangle',
+      'Central Library Discussion & Study Vault Room',
+      'Conference Room A (Senate & Faculty Hall)',
+    ];
+
+    const slotTimes = [
+      ['09:00', '12:00'],
+      ['14:00', '17:00'],
+      ['17:30', '20:30'],
     ];
 
     const today = new Date();
-    for (let dayOffset = 0; dayOffset <= 4; dayOffset++) {
+    for (let dayOffset = 0; dayOffset <= 14; dayOffset++) {
       const d = new Date(today.getTime() + dayOffset * 24 * 60 * 60 * 1000);
       const dateStr = d.toISOString().split('T')[0];
 
-      for (const fac of facilities) {
-        for (const t of fac.times) {
+      for (const facName of facilities) {
+        for (const t of slotTimes) {
+          const cleanFac = facName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12);
+          const cleanStart = t[0].replace(':', '');
           await db('booking_slots').insert({
-            id: uuidv4(),
-            facility_or_club: fac.name,
+            id: `slot-${cleanFac}-${dateStr}-${cleanStart}`,
+            facility_or_club: facName,
             slot_date: dateStr,
             start_time: t[0],
             end_time: t[1],
             is_available: true,
             max_capacity: 1,
-            notes: 'Equipped with presentation screen and AC.',
+            notes: 'Equipped with presentation screen, Gigabit LAN, and climate control.',
             created_at: new Date(),
             updated_at: new Date(),
           });

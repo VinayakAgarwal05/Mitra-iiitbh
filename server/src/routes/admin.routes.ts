@@ -182,8 +182,8 @@ router.get('/bookings', async (req: Request, res: Response, next: NextFunction):
     const { status } = req.query;
 
     let query = db('bookings')
-      .join('booking_slots', 'bookings.slot_id', 'booking_slots.id')
-      .join('users', 'bookings.user_id', 'users.id')
+      .leftJoin('booking_slots', 'bookings.slot_id', 'booking_slots.id')
+      .leftJoin('users', 'bookings.user_id', 'users.id')
       .orderBy('bookings.created_at', 'desc')
       .select(
         'bookings.id',
@@ -207,7 +207,18 @@ router.get('/bookings', async (req: Request, res: Response, next: NextFunction):
     }
 
     const bookings = await query;
-    res.status(200).json(bookings);
+
+    const safeBookings = bookings.map((b) => ({
+      ...b,
+      facility_or_club: b.facility_or_club || 'Campus Facility',
+      slot_date: b.slot_date || '',
+      start_time: b.start_time || '',
+      end_time: b.end_time || '',
+      student_name: b.student_name || 'Student Representative',
+      student_email: b.student_email || 'student@iiitbh.ac.in',
+    }));
+
+    res.status(200).json(safeBookings);
   } catch (err) {
     next(err);
   }
@@ -247,6 +258,16 @@ router.patch('/bookings/:id', async (req: Request, res: Response, next: NextFunc
       reviewed_at: new Date(),
       updated_at: new Date(),
     });
+
+    try {
+      const io = getIO();
+      io?.emit('booking_status_updated', {
+        id,
+        status,
+        reviewer_notes: reviewer_notes?.trim() || null,
+        reviewed_at: new Date().toISOString(),
+      });
+    } catch (e) {}
 
     await logAuditEvent({
       userId: req.user!.id,

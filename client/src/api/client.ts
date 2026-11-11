@@ -594,7 +594,58 @@ function handleDemoFallback(config: any): any {
   }
 
   // 6. EVENTS & BOOKED SLOTS (/events)
+  if (urlPath.endsWith('/events') && method === 'post') {
+    let customEvents: any[] = [];
+    try {
+      customEvents = JSON.parse(localStorage.getItem('demo_custom_events') || '[]');
+    } catch {}
+
+    const newEvent = {
+      id: 'event-demo-' + Date.now(),
+      title: (body.title || '').trim(),
+      category: (body.category || 'tech').trim(),
+      description: (body.description || '').trim(),
+      start_time: body.start_time,
+      end_time: body.end_time,
+      venue: (body.venue || 'Main Campus Auditorium').trim(),
+      organizer: (body.organizer || 'Academic Affairs').trim(),
+      coordinator_name: (body.coordinator_name || 'Event Coordinator').trim(),
+      coordinator_contact: (body.coordinator_contact || 'events@iiitbh.ac.in').trim(),
+      registration_link: body.registration_link ? body.registration_link.trim() : null,
+      eligibility: body.eligibility ? body.eligibility.trim() : 'All Students',
+      preparation_notes: body.preparation_notes ? body.preparation_notes.trim() : null,
+      attachments: '[]',
+      faqs: '[]',
+      status: body.status || 'upcoming',
+      created_at: new Date().toISOString(),
+    };
+
+    customEvents.unshift(newEvent);
+    try {
+      localStorage.setItem('demo_custom_events', JSON.stringify(customEvents));
+    } catch {}
+
+    addAuditLog('EVENT_PUBLISHED', 'events', `Event published: "${newEvent.title}" at ${newEvent.venue}`);
+    return ok({ message: 'College event published successfully!', event: newEvent }, 201);
+  }
+
+  if (urlPath.includes('/events/') && method === 'delete') {
+    const parts = urlPath.split('/');
+    const eventId = parts[parts.length - 1];
+    try {
+      let customEvents = JSON.parse(localStorage.getItem('demo_custom_events') || '[]');
+      customEvents = customEvents.filter((e: any) => e.id !== eventId);
+      localStorage.setItem('demo_custom_events', JSON.stringify(customEvents));
+    } catch {}
+    return ok({ message: 'Event deleted successfully.' });
+  }
+
   if (urlPath.includes('/events')) {
+    let customEvents: any[] = [];
+    try {
+      customEvents = JSON.parse(localStorage.getItem('demo_custom_events') || '[]');
+    } catch {}
+
     let customBookings: any[] = [];
     try {
       customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
@@ -618,12 +669,24 @@ function handleDemoFallback(config: any): any {
       faqs: '[]',
     }));
 
-    const allEvents = [...DEMO_EVENTS, ...bookingEvents];
+    let allEvents = [...customEvents, ...DEMO_EVENTS, ...bookingEvents];
 
     if (config.params?.category && config.params.category !== 'all') {
-      const filtered = allEvents.filter((e) => e.category === config.params.category);
-      return ok(filtered);
+      allEvents = allEvents.filter((e) => e.category === config.params.category);
     }
+
+    if (config.params?.search) {
+      const s = config.params.search.toLowerCase();
+      allEvents = allEvents.filter(
+        (e) =>
+          (e.title || '').toLowerCase().includes(s) ||
+          (e.description || '').toLowerCase().includes(s) ||
+          (e.venue || '').toLowerCase().includes(s) ||
+          (e.organizer || '').toLowerCase().includes(s)
+      );
+    }
+
+    allEvents.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
     return ok(allEvents);
   }
@@ -1161,7 +1224,22 @@ function handleDemoFallback(config: any): any {
         created_at: new Date(Date.now() - 7200000).toISOString(),
       },
     ];
-    const allBookings = [...customBookings, ...seedAdminBookings];
+
+    let seedBookings = seedAdminBookings;
+    try {
+      const storedSeed = localStorage.getItem('demo_seed_admin_bookings');
+      if (storedSeed) {
+        seedBookings = JSON.parse(storedSeed);
+      } else {
+        localStorage.setItem('demo_seed_admin_bookings', JSON.stringify(seedAdminBookings));
+      }
+    } catch {}
+
+    const customIds = new Set(customBookings.map((b: any) => b.id));
+    const allBookings = [
+      ...customBookings,
+      ...seedBookings.filter((b: any) => !customIds.has(b.id)),
+    ];
 
     // Reports from localStorage
     let storedReports: any[] = [];
@@ -1195,11 +1273,23 @@ function handleDemoFallback(config: any): any {
       const parts = urlPath.split('/');
       const bookingId = parts[parts.length - 1];
       const newStatus = body.status || 'approved';
-      const updated = allBookings.map((b: any) =>
+
+      // Update in customBookings if present
+      if (customBookings.some((b: any) => b.id === bookingId)) {
+        customBookings = customBookings.map((b: any) =>
+          b.id === bookingId ? { ...b, status: newStatus } : b
+        );
+        try {
+          localStorage.setItem('demo_user_bookings', JSON.stringify(customBookings));
+        } catch {}
+      }
+
+      // Update in seedBookings if present
+      seedBookings = seedBookings.map((b: any) =>
         b.id === bookingId ? { ...b, status: newStatus } : b
       );
       try {
-        localStorage.setItem('demo_user_bookings', JSON.stringify(updated));
+        localStorage.setItem('demo_seed_admin_bookings', JSON.stringify(seedBookings));
       } catch {}
 
       addAuditLog(

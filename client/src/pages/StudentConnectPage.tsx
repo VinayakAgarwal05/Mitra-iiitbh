@@ -103,12 +103,13 @@ export const StudentConnectPage: React.FC = () => {
         if (incoming.parent_id) {
           // It's a reply
           setPosts((prev) =>
-            prev.map((p) => {
+            (prev || []).map((p) => {
               if (p.id === incoming.parent_id) {
-                if (p.replies.some((r: any) => r.id === incoming.id)) return p;
+                const currentReplies = Array.isArray(p.replies) ? p.replies : [];
+                if (currentReplies.some((r: any) => r.id === incoming.id)) return p;
                 return {
                   ...p,
-                  replies: [...p.replies, incoming],
+                  replies: [...currentReplies, incoming],
                   replies_count: (p.replies_count || 0) + 1,
                 };
               }
@@ -118,8 +119,9 @@ export const StudentConnectPage: React.FC = () => {
         } else {
           // It's a root post
           setPosts((prev) => {
-            if (prev.some((p) => p.id === incoming.id)) return prev;
-            return [incoming, ...prev];
+            const list = Array.isArray(prev) ? prev : [];
+            if (list.some((p) => p.id === incoming.id)) return list;
+            return [incoming, ...list];
           });
         }
       });
@@ -479,19 +481,24 @@ export const StudentConnectPage: React.FC = () => {
                 {/* Tags */}
                 {post.tags && (
                   <div className="flex flex-wrap gap-1.5 pt-1">
-                    {post.tags.split(',').map((t: string) => (
+                    {(typeof post.tags === 'string'
+                      ? post.tags.split(',')
+                      : Array.isArray(post.tags)
+                      ? post.tags
+                      : []
+                    ).map((t: string) => (
                       <span
                         key={t}
                         className="text-[10px] px-2 py-0.5 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 font-mono border border-slate-200 dark:border-slate-700"
                       >
-                        #{t.trim()}
+                        #{typeof t === 'string' ? t.trim() : t}
                       </span>
                     ))}
                   </div>
                 )}
 
                 {/* Replies Container */}
-                {post.replies && post.replies.length > 0 && (
+                {Array.isArray(post.replies) && post.replies.length > 0 && (
                   <div className="mt-3 pl-4 border-l-2 border-brand-200 dark:border-brand-900 space-y-2.5 pt-1">
                     {post.replies.map((reply: any) => {
                       const isMyReply = Boolean(user?.id && reply.user_id ? reply.user_id === user.id : reply.is_self);
