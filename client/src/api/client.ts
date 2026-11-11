@@ -16,54 +16,63 @@ const getApiBaseUrl = () => {
   return '/api';
 };
 
-export const api = axios.create({
-  baseURL: getApiBaseUrl(),
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Intercept requests to attach JWT auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('college_connect_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Detect if running on a static hosting environment without a dedicated backend server
+const isStaticPreview =
+  !import.meta.env.VITE_API_BASE_URL &&
+  !import.meta.env.VITE_API_URL &&
+  typeof window !== 'undefined' &&
+  (
+    window.location.hostname.includes('vercel.app') ||
+    window.location.hostname.includes('netlify.app') ||
+    window.location.hostname.includes('github.io') ||
+    window.location.hostname.includes('onrender.com') ||
+    window.location.hostname.includes('surge.sh') ||
+    window.location.search.includes('demo=true')
+  );
 
 // Fallback Mock Engine for Vercel Preview Deployments (when remote backend is not running)
 function handleDemoFallback(config: any): any {
-  const url = config.url || '';
+  const fullUrl = config.url || '';
+  const urlPath = fullUrl.split('?')[0];
   const method = (config.method || 'get').toLowerCase();
   let body: any = {};
   try {
     body = typeof config.data === 'string' ? JSON.parse(config.data) : config.data || {};
   } catch {}
 
-  // 1. LOGIN FALLBACK
-  if (url.includes('/auth/login') && method === 'post') {
+  const ok = (data: any, status = 200) => ({
+    data,
+    status,
+    statusText: 'OK',
+    headers: {},
+    config,
+  });
+
+  const reject = (error: string, status = 400, code?: string) =>
+    Promise.reject({
+      response: {
+        status,
+        data: { error, code },
+      },
+      config,
+    });
+
+  // 1. LOGIN (/auth/login)
+  if (urlPath.includes('/auth/login') && method === 'post') {
     const email = (body.email || '').toLowerCase().trim();
     const isCollegeEmail = email.endsWith('@iiitbh.ac.in') || email.endsWith('@college.edu');
 
     if (!isCollegeEmail) {
-      return Promise.reject({
-        response: {
-          status: 400,
-          data: { error: 'Registration and login restricted to @iiitbh.ac.in or @college.edu.' },
-        },
-      });
+      return reject('Registration and login restricted to @iiitbh.ac.in or @college.edu.', 400);
     }
 
     if (email.includes('admin')) {
       const user = DEMO_USERS.admin;
-      return Promise.resolve({
-        data: { message: 'Login successful (Demo Mode)', token: 'demo-jwt-token-admin', user },
-        status: 200,
-      });
+      try {
+        localStorage.setItem('college_connect_token', 'demo-jwt-token-admin');
+        localStorage.setItem('college_connect_user', JSON.stringify(user));
+      } catch {}
+      return ok({ message: 'Login successful (Demo Mode)', token: 'demo-jwt-token-admin', user });
     }
 
     const studentUser = {
@@ -77,49 +86,90 @@ function handleDemoFallback(config: any): any {
       is_verified: true,
     };
 
-    return Promise.resolve({
-      data: { message: 'Login successful (Demo Mode)', token: 'demo-jwt-token-student', user: studentUser },
-      status: 200,
-    });
+    try {
+      localStorage.setItem('college_connect_token', 'demo-jwt-token-student');
+      localStorage.setItem('college_connect_user', JSON.stringify(studentUser));
+    } catch {}
+
+    return ok({ message: 'Login successful (Demo Mode)', token: 'demo-jwt-token-student', user: studentUser });
   }
 
-  // 2. CURRENT USER PROFILE (/auth/me)
-  if (url.includes('/auth/me')) {
-    const cachedUser = localStorage.getItem('college_connect_user');
-    const user = cachedUser ? JSON.parse(cachedUser) : DEMO_USERS.student1;
+  // 2. REGISTER (/auth/register)
+  if (urlPath.includes('/auth/register') && method === 'post') {
+    const email = (body.email || '').toLowerCase().trim();
+    const isCollegeEmail = email.endsWith('@iiitbh.ac.in') || email.endsWith('@college.edu');
 
-    return Promise.resolve({
-      data: {
-        user,
-        dailyUsage: {
-          date: new Date().toISOString().slice(0, 10),
-          careerRoom: { used: 1, limit: 10, remaining: 9 },
-          studentConnect: { used: 0, limit: 10, remaining: 10 },
-          studentIssue: { used: 0, limit: 2, remaining: 2 },
-        },
-        joinedRooms: [DEMO_CAREER_ROOMS[0], DEMO_CAREER_ROOMS[1]],
+    if (!isCollegeEmail) {
+      return reject('Registration restricted to verified @iiitbh.ac.in or @college.edu addresses.', 400);
+    }
+
+    return ok(
+      {
+        message: 'Account created! A verification code has been dispatched to your institutional inbox.',
+        email,
       },
-      status: 200,
+      201
+    );
+  }
+
+  // 3. VERIFY EMAIL (/auth/verify-email)
+  if (urlPath.includes('/auth/verify-email') && method === 'post') {
+    const user = DEMO_USERS.student1;
+    return ok({
+      message: 'Email verified successfully. Welcome to IIIT Bhagalpur — Mitra!',
+      token: 'demo-jwt-token-student',
+      user,
     });
   }
 
-  // 3. EVENTS & BOOKED SLOTS (/events)
-  if (url.startsWith('/events')) {
-    const customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+  // 4. RESEND OTP (/auth/resend-otp)
+  if (urlPath.includes('/auth/resend-otp') && method === 'post') {
+    return ok({ message: 'Verification code resent successfully.' });
+  }
+
+  // 5. CURRENT USER PROFILE (/auth/me)
+  if (urlPath.includes('/auth/me')) {
+    let user = DEMO_USERS.student1;
+    try {
+      const cached = localStorage.getItem('college_connect_user');
+      if (cached && cached !== 'undefined' && cached !== 'null') {
+        user = JSON.parse(cached);
+      }
+    } catch {}
+
+    return ok({
+      user,
+      dailyUsage: {
+        date: new Date().toISOString().slice(0, 10),
+        careerRoom: { used: 1, limit: 10, remaining: 9 },
+        studentConnect: { used: 0, limit: 10, remaining: 10 },
+        studentIssue: { used: 0, limit: 2, remaining: 2 },
+      },
+      joinedRooms: [DEMO_CAREER_ROOMS[0], DEMO_CAREER_ROOMS[1]],
+    });
+  }
+
+  // 6. EVENTS & BOOKED SLOTS (/events)
+  if (urlPath.includes('/events')) {
+    let customBookings: any[] = [];
+    try {
+      customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+    } catch {}
+
     const bookingEvents = customBookings.map((b: any) => ({
       id: `booking-${b.id}`,
-      title: `📌 [Booked Slot] ${b.club_or_society}: ${b.purpose}`,
+      title: `${b.status === 'approved' ? '📌 [Booked Slot]' : '⏳ [Pending Approval]'} ${b.club_or_society}: ${b.purpose}`,
       category: 'booked_slot',
-      description: `Facility Reserved: ${b.facility_or_club}\nTime: ${b.start_time} - ${b.end_time}\nStatus: APPROVED\n\nPurpose:\n${b.purpose}\n\nDetails:\n${b.description}`,
+      description: `Facility: ${b.facility_or_club}\nTime: ${b.start_time} - ${b.end_time}\nStatus: ${b.status.toUpperCase()}\n\nPurpose:\n${b.purpose}\n\nDetails:\n${b.description}`,
       start_time: `${b.slot_date}T${b.start_time}:00`,
       end_time: `${b.slot_date}T${b.end_time}:00`,
       venue: b.facility_or_club,
       organizer: b.club_or_society,
-      coordinator_name: 'Aarav Sharma',
-      coordinator_contact: 'student1@college.edu',
-      status: 'confirmed',
+      coordinator_name: b.student_name || 'Aarav Sharma',
+      coordinator_contact: b.student_email || 'student1@college.edu',
+      status: b.status === 'approved' ? 'confirmed' : 'pending',
       is_slot_booking: true,
-      booking_status: 'approved',
+      booking_status: b.status,
       attachments: '[]',
       faqs: '[]',
     }));
@@ -128,28 +178,34 @@ function handleDemoFallback(config: any): any {
 
     if (config.params?.category && config.params.category !== 'all') {
       const filtered = allEvents.filter((e) => e.category === config.params.category);
-      return Promise.resolve({ data: filtered, status: 200 });
+      return ok(filtered);
     }
 
-    return Promise.resolve({ data: allEvents, status: 200 });
+    return ok(allEvents);
   }
 
-  // 4. SLOTS (/bookings/slots)
-  if (url.includes('/bookings/slots')) {
-    const customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
-    const bookedSlotIds = new Set(customBookings.map((b: any) => b.slot_id));
+  // 7. SLOTS (/bookings/slots)
+  if (urlPath.includes('/bookings/slots')) {
+    let customBookings: any[] = [];
+    try {
+      customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+    } catch {}
+    const bookedSlotIds = new Set(customBookings.filter((b: any) => b.status === 'approved').map((b: any) => b.slot_id));
 
     const slots = DEMO_SLOTS.map((s) => ({
       ...s,
       is_booked: s.is_booked || bookedSlotIds.has(s.id),
     }));
 
-    return Promise.resolve({ data: slots, status: 200 });
+    return ok(slots);
   }
 
-  // 5. SUBMIT BOOKING (/bookings)
-  if (url === '/bookings' && method === 'post') {
-    const customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+  // 8. SUBMIT BOOKING (/bookings)
+  if (urlPath.endsWith('/bookings') && method === 'post') {
+    let customBookings: any[] = [];
+    try {
+      customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+    } catch {}
     const slot = DEMO_SLOTS.find((s) => s.id === body.slot_id) || DEMO_SLOTS[0];
 
     const newBooking = {
@@ -164,80 +220,213 @@ function handleDemoFallback(config: any): any {
       end_time: slot.end_time,
       student_name: 'Aarav Sharma',
       student_email: 'student1@college.edu',
-      status: 'pending', // Submits formal request to administration for approval
+      status: 'pending', // Submits request to admin for review
       created_at: new Date().toISOString(),
     };
 
     customBookings.unshift(newBooking);
-    localStorage.setItem('demo_user_bookings', JSON.stringify(customBookings));
+    try {
+      localStorage.setItem('demo_user_bookings', JSON.stringify(customBookings));
+    } catch {}
 
-    return Promise.resolve({
-      data: {
+    return ok(
+      {
         message: 'Booking request submitted successfully! A notification has been sent to the Administration for review. Once approved, it will be officially confirmed on the College Calendar.',
         booking: newBooking,
       },
-      status: 201,
-    });
+      201
+    );
   }
 
-  // 6. MY BOOKINGS (/bookings/my)
-  if (url.includes('/bookings/my')) {
-    const customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
-    return Promise.resolve({ data: customBookings, status: 200 });
+  // 9. MY BOOKINGS (/bookings/my)
+  if (urlPath.includes('/bookings/my')) {
+    let customBookings: any[] = [];
+    try {
+      customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+    } catch {}
+    return ok(customBookings);
   }
 
-  // 7. CAREER ROOMS (/career-rooms)
-  if (url.startsWith('/career-rooms')) {
-    if (url.includes('/messages')) {
-      return Promise.resolve({
-        data: [
+  // 10. CANCEL BOOKING (/bookings/:id/cancel)
+  if (urlPath.includes('/bookings/') && urlPath.endsWith('/cancel') && method === 'patch') {
+    const parts = urlPath.split('/');
+    const bookingId = parts[parts.length - 2];
+    try {
+      let customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+      customBookings = customBookings.map((b: any) =>
+        b.id === bookingId ? { ...b, status: 'cancelled' } : b
+      );
+      localStorage.setItem('demo_user_bookings', JSON.stringify(customBookings));
+    } catch {}
+    return ok({ message: 'Booking reservation cancelled.' });
+  }
+
+  // 11. CAREER ROOMS (/career-rooms)
+  if (urlPath.includes('/career-rooms')) {
+    if (urlPath.includes('/messages')) {
+      if (method === 'post') {
+        return ok(
           {
-            id: 'msg-1',
+            id: 'msg-' + Date.now(),
             alias: 'Blue Falcon #38',
-            content: 'Has anyone reviewed the latest Google OA dynamic programming problem?',
-            created_at: new Date(Date.now() - 3600000).toISOString(),
+            content: body.content,
+            created_at: new Date().toISOString(),
           },
-          {
-            id: 'msg-2',
-            alias: 'Silver Phoenix #14',
-            content: 'Yes! It was a variation of 2D grid DP with obstacle costs. Vetted notes are in the Study Vault.',
-            created_at: new Date(Date.now() - 1800000).toISOString(),
-          },
-        ],
-        status: 200,
+          201
+        );
+      }
+      return ok([
+        {
+          id: 'msg-1',
+          alias: 'Blue Falcon #38',
+          content: 'Has anyone reviewed the latest Google OA dynamic programming problem?',
+          created_at: new Date(Date.now() - 3600000).toISOString(),
+        },
+        {
+          id: 'msg-2',
+          alias: 'Silver Phoenix #14',
+          content: 'Yes! It was a variation of 2D grid DP with obstacle costs. Vetted notes are in the Study Vault.',
+          created_at: new Date(Date.now() - 1800000).toISOString(),
+        },
+      ]);
+    }
+
+    if (urlPath.endsWith('/join') && method === 'post') {
+      return ok({ message: 'Successfully joined career room.' });
+    }
+    if (urlPath.endsWith('/leave') && method === 'delete') {
+      return ok({ message: 'Successfully left career room.' });
+    }
+
+    const roomId = urlPath.split('/').pop();
+    const singleRoom = DEMO_CAREER_ROOMS.find((r) => r.id === roomId);
+    if (singleRoom) return ok(singleRoom);
+
+    return ok(DEMO_CAREER_ROOMS);
+  }
+
+  // 12. STUDENT CONNECT ANONYMOUS CHAT (/student-connect/messages)
+  if (urlPath.includes('/student-connect/messages')) {
+    if (method === 'post') {
+      return ok(
+        {
+          id: 'sc-msg-' + Date.now(),
+          alias: 'Anonymous Student #42',
+          content: body.content,
+          department: 'Computer Science and Engineering',
+          academic_year: '3rd Year',
+          created_at: new Date().toISOString(),
+        },
+        201
+      );
+    }
+    return ok([
+      {
+        id: 'sc-msg-1',
+        alias: 'Anonymous Student #19',
+        content: 'Does anyone have the past semester Digital Signal Processing question paper?',
+        department: 'Electronics and Communication',
+        academic_year: '2nd Year',
+        created_at: new Date(Date.now() - 7200000).toISOString(),
+      },
+      {
+        id: 'sc-msg-2',
+        alias: 'Anonymous Student #31',
+        content: 'Check the Study Vault under ECE resources! Uploaded yesterday by the club leads.',
+        department: 'Electronics and Communication',
+        academic_year: '3rd Year',
+        created_at: new Date(Date.now() - 3600000).toISOString(),
+      },
+    ]);
+  }
+
+  // 13. CONTACTS (/contacts)
+  if (urlPath.includes('/contacts')) {
+    return ok(DEMO_CONTACTS);
+  }
+
+  // 14. STUDY MATERIALS (/materials)
+  if (urlPath.includes('/materials')) {
+    if (method === 'post') {
+      return ok({ message: 'Study material uploaded and pending faculty verification.' }, 201);
+    }
+    if (method === 'delete') {
+      return ok({ message: 'Material removed successfully.' });
+    }
+    return ok(DEMO_STUDY_MATERIALS);
+  }
+
+  // 15. STUDENT ISSUES (/issues)
+  if (urlPath.includes('/issues')) {
+    if (urlPath.includes('/my-submissions')) {
+      return ok([
+        {
+          id: 'issue-demo-1',
+          tracking_id: 'ISSUE-49182',
+          category: 'hostel',
+          title: 'Wi-Fi connectivity in Hostel Block C',
+          status: 'in_progress',
+          priority: 'medium',
+          created_at: new Date(Date.now() - 86400000).toISOString(),
+          messages: [
+            {
+              id: 'im-1',
+              sender_role: 'admin',
+              content: 'Our IT team has been informed and will reset the access points this evening.',
+              created_at: new Date(Date.now() - 43200000).toISOString(),
+            },
+          ],
+        },
+      ]);
+    }
+    if (urlPath.includes('/track/')) {
+      return ok({
+        id: 'issue-demo-1',
+        tracking_id: 'ISSUE-49182',
+        category: 'hostel',
+        title: 'Wi-Fi connectivity in Hostel Block C',
+        status: 'in_progress',
+        priority: 'medium',
+        created_at: new Date(Date.now() - 86400000).toISOString(),
+        messages: [],
       });
     }
-    return Promise.resolve({ data: DEMO_CAREER_ROOMS, status: 200 });
+    if (method === 'post') {
+      const trackingId = `ISSUE-${Math.floor(10000 + Math.random() * 90000)}`;
+      return ok(
+        {
+          message: 'Your concern has been registered anonymously and securely encrypted.',
+          trackingId,
+          remainingSubmissionsToday: 1,
+        },
+        201
+      );
+    }
   }
 
-  // 8. CONTACTS (/contacts)
-  if (url.startsWith('/contacts')) {
-    return Promise.resolve({ data: DEMO_CONTACTS, status: 200 });
+  // 16. USER PROFILE & SETTINGS
+  if (urlPath.includes('/user/profile') && (method === 'put' || method === 'patch')) {
+    let user = DEMO_USERS.student1;
+    try {
+      const cached = localStorage.getItem('college_connect_user');
+      if (cached) user = { ...JSON.parse(cached), ...body };
+      localStorage.setItem('college_connect_user', JSON.stringify(user));
+    } catch {}
+    return ok({ message: 'Profile details updated.', user });
   }
 
-  // 9. STUDY MATERIALS (/materials)
-  if (url.startsWith('/materials')) {
-    return Promise.resolve({ data: DEMO_STUDY_MATERIALS, status: 200 });
+  if (urlPath.includes('/user/change-password') && method === 'post') {
+    return ok({ message: 'Password has been updated successfully.' });
   }
 
-  // 10. STUDENT ISSUES (/issues)
-  if (url.startsWith('/issues') && method === 'post') {
-    const trackingId = `ISSUE-${Math.floor(10000 + Math.random() * 90000)}`;
-    return Promise.resolve({
-      data: {
-        message: 'Your concern has been registered anonymously and securely encrypted.',
-        trackingId,
-        remainingSubmissionsToday: 1,
-      },
-      status: 201,
-    });
-  }
-
-  // 11. ADMIN DASHBOARD & BOOKING APPROVALS (/admin)
-  if (url.startsWith('/admin')) {
+  // 17. ADMIN DASHBOARD & BOOKING APPROVALS (/admin)
+  if (urlPath.includes('/admin')) {
     // Admin review of booking requests
-    if (url.includes('/admin/bookings') && method === 'get') {
-      const customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+    if (urlPath.includes('/admin/bookings') && method === 'get') {
+      let customBookings: any[] = [];
+      try {
+        customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+      } catch {}
       const seedAdminBookings = [
         {
           id: 'demo-seed-bkg-1',
@@ -255,78 +444,129 @@ function handleDemoFallback(config: any): any {
         },
       ];
       const combined = [...customBookings, ...seedAdminBookings];
-      return Promise.resolve({ data: combined, status: 200 });
+      return ok(combined);
     }
 
     // Admin approve / reject action
-    if (url.includes('/admin/bookings/') && method === 'patch') {
-      const parts = url.split('/');
+    if (urlPath.includes('/admin/bookings/') && method === 'patch') {
+      const parts = urlPath.split('/');
       const bookingId = parts[parts.length - 1];
-      const customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
-      const updated = customBookings.map((b: any) =>
-        b.id === bookingId ? { ...b, status: body.status || 'approved' } : b
-      );
-      localStorage.setItem('demo_user_bookings', JSON.stringify(updated));
-      return Promise.resolve({
-        data: { message: `Booking reservation request marked as ${body.status || 'approved'}. Calendar has been updated.` },
-        status: 200,
-      });
+      try {
+        let customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+        customBookings = customBookings.map((b: any) =>
+          b.id === bookingId ? { ...b, status: body.status || 'approved' } : b
+        );
+        localStorage.setItem('demo_user_bookings', JSON.stringify(customBookings));
+      } catch {}
+      return ok({ message: `Booking reservation request marked as ${body.status || 'approved'}. Calendar has been updated.` });
     }
 
-    const customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+    if (urlPath.includes('/admin/domains')) {
+      return ok(['iiitbh.ac.in', 'college.edu']);
+    }
+
+    if (urlPath.includes('/admin/users')) {
+      return ok([DEMO_USERS.admin, DEMO_USERS.student1, DEMO_USERS.student2]);
+    }
+
+    if (urlPath.includes('/admin/issues')) {
+      return ok([]);
+    }
+
+    if (urlPath.includes('/admin/reports')) {
+      return ok([]);
+    }
+
+    if (urlPath.includes('/admin/audit-logs')) {
+      return ok([
+        { id: '1', action: 'USER_LOGIN', details: 'admin@iiitbh.ac.in', created_at: new Date().toISOString() },
+        { id: '2', action: 'BOOKING_REQUEST_RECEIVED', details: 'Robotics Society', created_at: new Date(Date.now() - 1200000).toISOString() },
+      ]);
+    }
+
+    let customBookings: any[] = [];
+    try {
+      customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+    } catch {}
     const pendingCount = customBookings.filter((b: any) => b.status === 'pending').length + 1;
 
-    return Promise.resolve({
-      data: {
-        totalStudents: 852,
-        verifiedStudents: 846,
-        activeCareerRooms: 12,
-        pendingBookings: pendingCount,
-        openIssues: 5,
-        totalMaterials: 64,
-        recentAudits: [
-          { id: '1', action: 'USER_LOGIN', details: 'admin@iiitbh.ac.in', created_at: new Date().toISOString() },
-          { id: '2', action: 'BOOKING_REQUEST_RECEIVED', details: 'Robotics Society', created_at: new Date(Date.now() - 1200000).toISOString() },
-        ],
-      },
-      status: 200,
+    return ok({
+      totalStudents: 852,
+      verifiedStudents: 846,
+      activeCareerRooms: 12,
+      pendingBookings: pendingCount,
+      openIssues: 5,
+      totalMaterials: 64,
+      recentAudits: [
+        { id: '1', action: 'USER_LOGIN', details: 'admin@iiitbh.ac.in', created_at: new Date().toISOString() },
+        { id: '2', action: 'BOOKING_REQUEST_RECEIVED', details: 'Robotics Society', created_at: new Date(Date.now() - 1200000).toISOString() },
+      ],
     });
   }
 
   return null;
 }
 
-// Intercept responses for auth errors & Vercel offline backend fallback
+const defaultAdapter = axios.getAdapter(axios.defaults.adapter);
+
+export const api = axios.create({
+  baseURL: getApiBaseUrl(),
+  timeout: 4000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  adapter: async (config) => {
+    // If on static preview or ?demo=true, respond instantly (<10ms) without network round-trip
+    if (isStaticPreview) {
+      const demoRes = handleDemoFallback(config);
+      if (demoRes) return demoRes;
+    }
+
+    try {
+      const res = await defaultAdapter(config);
+      // If a static host rewrites API calls to index.html (returns HTML instead of JSON):
+      if (typeof res.data === 'string' && (res.data.includes('<!DOCTYPE') || res.data.includes('<html'))) {
+        const fallback = handleDemoFallback(config);
+        if (fallback) return fallback;
+      }
+      return res;
+    } catch (err: any) {
+      // If backend is unreachable, offline, or returns 404/405/500:
+      const fallback = handleDemoFallback(config);
+      if (fallback) return fallback;
+      throw err;
+    }
+  },
+});
+
+// Intercept requests to attach JWT auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('college_connect_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Intercept responses for auth expiration redirect
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // If request failed because backend is offline, returned 404 from Vercel static router,
-    // or returned HTML error page from Vercel:
-    const isNetworkOr404 =
-      !error.response ||
-      error.response.status === 404 ||
-      error.response.status === 405 ||
-      typeof error.response.data === 'string' && error.response.data.includes('Cannot POST');
-
-    if (isNetworkOr404) {
-      const fallback = handleDemoFallback(error.config);
-      if (fallback) {
-        return fallback;
-      }
-    }
-
     if (error.response?.status === 401) {
       const isAuthRoute =
-        window.location.pathname.startsWith('/login') ||
-        window.location.pathname.startsWith('/register') ||
-        window.location.pathname.startsWith('/verify-email');
+        typeof window !== 'undefined' &&
+        (window.location.pathname.startsWith('/login') ||
+          window.location.pathname.startsWith('/register') ||
+          window.location.pathname.startsWith('/verify-email'));
       if (!isAuthRoute) {
         localStorage.removeItem('college_connect_token');
         localStorage.removeItem('college_connect_user');
         window.location.href = '/login';
       }
     }
-
     return Promise.reject(error);
   }
 );

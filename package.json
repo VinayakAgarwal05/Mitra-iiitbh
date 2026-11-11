@@ -14,7 +14,7 @@
     "dev": "npm run dev:server",
     "build:server": "npm run build --prefix server",
     "build:client": "npm run build --prefix client",
-    "build": "npm run build:server && npm run build:client",
+    "build": "npm run build:server && npm run build:client && node -e \"const fs = require('fs'); fs.cpSync('client/dist', 'dist', { recursive: true });\"",
     "seed": "npm run seed --prefix server",
     "test:server": "npm run test --prefix server",
     "test": "npm run test:server"
