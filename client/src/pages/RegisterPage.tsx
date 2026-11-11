@@ -1,36 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Hash, BookOpen, Lock, AlertCircle, ArrowRight, Shield, CheckCircle2, MapPin } from 'lucide-react';
+import {
+  User,
+  Mail,
+  Hash,
+  BookOpen,
+  Lock,
+  AlertCircle,
+  ArrowRight,
+  Shield,
+  CheckCircle2,
+  MapPin,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import api from '../api/client';
+import { ScrollReveal } from '../components/common/ScrollReveal';
 
 const REGISTER_SLIDES = [
   {
+    image: '/images/iiitbh_panoramic.jpg',
+    tag: 'SABOUR PERMANENT CAMPUS',
+    title: 'A Vibrant New Home for Future Technologists.',
+    subtitle: '50-acre cutting-edge campus on the banks of River Ganga, fostering academic brilliance and community.',
+    location: 'Permanent Campus, Sabour, Bhagalpur',
+  },
+  {
     image: '/images/iiitbh_academic_block.jpg',
-    tag: 'ACADEMIC COMPLEX',
-    title: 'Join your institutional peer network.',
+    tag: 'MAIN ACADEMIC COMPLEX',
+    title: 'Smart Lecture Halls & Interdisciplinary Research.',
     subtitle: 'Access protected career discussions, student-led study repositories, and verified mentors.',
     location: 'Main Academic Block, Sabour Campus',
   },
   {
-    image: '/images/iiitbh_drone_aerial.jpg',
-    tag: 'CAMPUS PANORAMA',
-    title: 'A Modern Campus on the Banks of River Ganga.',
-    subtitle: 'High-performance compute clusters, robotics labs, and comprehensive student community.',
-    location: 'Permanent Campus, Sabour, Bhagalpur',
+    image: '/images/iiitbh_lab.jpg',
+    tag: 'RESEARCH LABORATORIES',
+    title: 'Hardware & AI Computing Infrastructure.',
+    subtitle: 'Equipped with next-generation GPU servers, embedded system suites, and IoT testing arenas.',
+    location: 'Advanced Computing Cluster, IIITBH',
   },
   {
-    image: '/images/iiitbh_campus_infrastructure.jpg',
-    tag: 'STUDENT COMMUNITY',
-    title: 'Complete Identity Privacy & Mutual Respect.',
-    subtitle: 'Exchange ideas across batches anonymously while maintaining campus integrity standards.',
+    image: '/images/iiitbh_auditorium.jpg',
+    tag: 'CENTRAL AUDITORIUM',
+    title: 'Conferences, Hackathons & Convocations.',
+    subtitle: 'A grand auditorium hosting national technical symposiums, research summits, and guest keynote lectures.',
+    location: 'Convention Complex, Sabour',
+  },
+  {
+    image: '/images/iiitbh_hostel.jpg',
+    tag: 'STUDENT RESIDENCE',
+    title: 'Modern Hostel Facilities & Campus Life.',
+    subtitle: 'Wi-Fi enabled student hostels with reading halls, indoor recreation, and 24/7 high-speed connectivity.',
     location: 'Residential Sector, IIIT Bhagalpur',
   },
   {
-    image: '/images/iiitbh_campus_1.jpg',
-    tag: 'WELFARE & SUPPORT',
-    title: 'Official Student Grievance Redressal System.',
-    subtitle: 'Direct, private channels to lodge concerns and track resolution in real time.',
-    location: 'Administrative Sector, IIIT Bhagalpur',
+    image: '/images/iiitbh_fest.jpg',
+    tag: 'TARANG CULTURAL FEST',
+    title: 'Arts, Cultural Nights & Technical Showcases.',
+    subtitle: 'Annual institute festival uniting student talents across Bihar and national collegiate networks.',
+    location: 'Amphitheatre & Arena, Sabour',
   },
 ];
 
@@ -191,19 +219,40 @@ export const RegisterPage: React.FC = () => {
 
         {/* Bottom Slide Indicators & Footer info */}
         <div className="relative z-20 flex items-center justify-between flex-wrap gap-3 pt-4 border-t border-white/10 text-xs">
-          <div className="flex items-center gap-2">
-            {REGISTER_SLIDES.map((s, idx) => (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
               <button
-                key={s.image}
-                onClick={() => setSlideIdx(idx)}
-                aria-label={`Show slide ${idx + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  idx === slideIdx
-                    ? 'w-7 bg-white'
-                    : 'w-2 bg-white/40 hover:bg-white/70'
-                }`}
-              />
-            ))}
+                type="button"
+                onClick={() => setSlideIdx((prev) => (prev - 1 + REGISTER_SLIDES.length) % REGISTER_SLIDES.length)}
+                className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setSlideIdx((prev) => (prev + 1) % REGISTER_SLIDES.length)}
+                className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {REGISTER_SLIDES.map((s, idx) => (
+                <button
+                  key={s.image}
+                  onClick={() => setSlideIdx(idx)}
+                  aria-label={`Show slide ${idx + 1}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    idx === slideIdx
+                      ? 'w-7 bg-white shadow-xs'
+                      : 'w-2 bg-white/40 hover:bg-white/70'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
 
           <span className="text-[11px] text-slate-400 font-mono">
@@ -214,7 +263,7 @@ export const RegisterPage: React.FC = () => {
 
       {/* Right Column: Registration Form */}
       <div className="lg:w-7/12 flex items-center justify-center p-6 sm:p-10 lg:p-12 bg-slate-50 dark:bg-slate-950">
-        <div className="w-full max-w-xl space-y-6 animate-fadeIn">
+        <ScrollReveal direction="slide-left" delay={100} className="w-full max-w-xl space-y-6">
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300 uppercase tracking-wider mb-1">
               <Shield className="w-3.5 h-3.5" />
@@ -428,7 +477,7 @@ export const RegisterPage: React.FC = () => {
               </p>
             </div>
           </div>
-        </div>
+        </ScrollReveal>
       </div>
     </div>
   );

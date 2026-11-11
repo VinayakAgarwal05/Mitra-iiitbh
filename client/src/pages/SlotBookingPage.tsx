@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import api, { getSocketUrl } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { ScrollReveal } from '../components/common/ScrollReveal';
 
 export const SlotBookingPage: React.FC = () => {
   const { user, token } = useAuth();
@@ -183,42 +184,56 @@ export const SlotBookingPage: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <Clock className="w-5 h-5 text-blue-900 dark:text-blue-400" />
-            Campus Facility & Society Room Reservations
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Reserve auditoriums, laboratories, and club rooms with transactional conflict prevention.
-          </p>
-        </div>
+      {/* Campus Photo Header Banner */}
+      <ScrollReveal animation="fade">
+        <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 p-6 sm:p-8 bg-slate-900 text-white min-h-[160px] flex flex-col justify-between shadow-xs">
+          <img
+            src="/images/iiitbh_auditorium.jpg"
+            alt="IIIT Bhagalpur Auditorium & Facilities"
+            className="absolute inset-0 w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-1000 ease-out"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-slate-900/60" />
 
-        {/* Tab switch */}
-        <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-lg flex items-center self-start sm:self-auto">
-          <button
-            onClick={() => setViewTab('slots')}
-            className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-              viewTab === 'slots'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400'
-            }`}
-          >
-            Available Slots
-          </button>
-          <button
-            onClick={() => setViewTab('my-bookings')}
-            className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-              viewTab === 'my-bookings'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400'
-            }`}
-          >
-            My Requests ({(myBookings || []).length})
-          </button>
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-blue-300 mb-1">
+                <Clock className="w-3.5 h-3.5 text-blue-400" />
+                <span>Auditoriums, Innovation Labs & Sports Pavilions</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                Campus Facility & Society Room Reservations
+              </h1>
+              <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+                Reserve auditoriums, compute laboratories, robotics arenas, and club rooms with transactional conflict prevention and administrative review.
+              </p>
+            </div>
+
+            {/* Tab switch */}
+            <div className="bg-white/10 backdrop-blur-md p-1 rounded-xl flex items-center self-start sm:self-auto border border-white/20 shrink-0">
+              <button
+                onClick={() => setViewTab('slots')}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  viewTab === 'slots'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                Available Slots
+              </button>
+              <button
+                onClick={() => setViewTab('my-bookings')}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  viewTab === 'my-bookings'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                My Requests ({(myBookings || []).length})
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* Notification Banner */}
       {notification && (
@@ -276,60 +291,66 @@ export const SlotBookingPage: React.FC = () => {
 
           {/* Slots Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {(slots || []).map((slot) => (
-              <div
+            {(slots || []).map((slot, idx) => (
+              <ScrollReveal
                 key={slot.id}
-                className={`human-card p-4 rounded-xl border transition-all flex flex-col justify-between ${
-                  slot.is_booked
-                    ? 'bg-slate-50/70 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-60'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700'
-                }`}
+                animation="slide-up"
+                delay={(idx % 6) * 50}
+                className="h-full"
               >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span
-                      className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded ${
-                        slot.is_booked
-                          ? 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
-                          : 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                      }`}
-                    >
-                      {slot.is_booked ? 'Slot Reserved' : 'Slot Available'}
-                    </span>
-                    <span className="text-[11px] font-mono text-slate-500">{slot.slot_date}</span>
+                <div
+                  className={`human-card p-4 rounded-xl border transition-all flex flex-col justify-between h-full ${
+                    slot.is_booked
+                      ? 'bg-slate-50/70 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-60'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xs hover:border-blue-500/50 dark:hover:border-blue-400/50 hover:shadow-lg'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span
+                        className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded ${
+                          slot.is_booked
+                            ? 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-200 dark:border-rose-900'
+                            : 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900'
+                        }`}
+                      >
+                        {slot.is_booked ? 'Slot Reserved' : 'Slot Available'}
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-500">{slot.slot_date}</span>
+                    </div>
+
+                    <h3 className="font-bold text-slate-900 dark:text-white text-xs mt-1">
+                      {slot.facility_or_club}
+                    </h3>
+
+                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-1.5 flex items-center gap-1.5 font-mono">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      {slot.start_time} - {slot.end_time}
+                    </p>
+
+                    {slot.notes && (
+                      <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-2">
+                        {slot.notes}
+                      </p>
+                    )}
                   </div>
 
-                  <h3 className="font-bold text-slate-900 dark:text-white text-xs mt-1">
-                    {slot.facility_or_club}
-                  </h3>
-
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-1.5 flex items-center gap-1.5 font-mono">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    {slot.start_time} - {slot.end_time}
-                  </p>
-
-                  {slot.notes && (
-                    <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-2">
-                      {slot.notes}
-                    </p>
-                  )}
+                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      disabled={slot.is_booked}
+                      onClick={() => setActiveSlot(slot)}
+                      className={`w-full py-1.5 px-3 rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 transition-colors ${
+                        slot.is_booked
+                          ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                          : 'bg-blue-900 hover:bg-blue-800 text-white shadow-xs'
+                      }`}
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      {slot.is_booked ? 'Reserved' : 'Request Slot'}
+                    </button>
+                  </div>
                 </div>
-
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                  <button
-                    disabled={slot.is_booked}
-                    onClick={() => setActiveSlot(slot)}
-                    className={`w-full py-1.5 px-3 rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 transition-colors ${
-                      slot.is_booked
-                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-                        : 'bg-blue-900 hover:bg-blue-800 text-white'
-                    }`}
-                  >
-                    <PlusCircle className="w-3.5 h-3.5" />
-                    {slot.is_booked ? 'Reserved' : 'Request Slot'}
-                  </button>
-                </div>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
         </>
@@ -347,11 +368,15 @@ export const SlotBookingPage: React.FC = () => {
               </p>
             </div>
           ) : (
-            (myBookings || []).map((b) => (
-              <div
+            (myBookings || []).map((b, idx) => (
+              <ScrollReveal
                 key={b.id}
-                className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                animation="slide-up"
+                delay={idx * 60}
               >
+                <div
+                  className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+                >
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-2">
                     {getStatusBadge(b.status)}
@@ -392,7 +417,8 @@ export const SlotBookingPage: React.FC = () => {
                   )}
                 </div>
               </div>
-            ))
+            </ScrollReveal>
+          ))
           )}
         </div>
       )}

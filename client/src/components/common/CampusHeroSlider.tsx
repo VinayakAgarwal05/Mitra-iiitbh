@@ -27,35 +27,59 @@ interface SlideItem {
 const SLIDES: SlideItem[] = [
   {
     id: 0,
-    image: '/images/iiitbh_drone_aerial.jpg',
+    image: '/images/iiitbh_panoramic.jpg',
     tag: 'PERMANENT CAMPUS • SABOUR',
-    title: 'A Centralized Digital Home for IIIT Bhagalpur',
-    subtitle: 'Connecting students across academic years, career discussion rooms, and academic vaults.',
+    title: 'Indian Institute of Information Technology Bhagalpur',
+    subtitle: 'State-of-the-art permanent campus situated along the holy River Ganga with cutting-edge academic architecture.',
     location: 'Sabour, Bhagalpur, Bihar (25.2425° N, 87.0177° E)',
   },
   {
     id: 1,
     image: '/images/iiitbh_academic_block.jpg',
-    tag: 'ACADEMIC COMPLEX',
-    title: 'Modern Engineering & Innovation Facilities',
-    subtitle: 'State-of-the-art computer science laboratories, robotics center, and seminar complexes.',
+    tag: 'ACADEMIC COMPLEX & INNOVATION',
+    title: 'High-Tech Engineering & Research Infrastructure',
+    subtitle: 'World-class compute clusters, dynamic lecture theatres, and dedicated research centers for CSE, ECE, MAE, and MNC.',
     location: 'Main Academic Block, IIIT Bhagalpur',
   },
   {
     id: 2,
-    image: '/images/iiitbh_campus_infrastructure.jpg',
-    tag: 'CAMPUS RESIDENCE & COMMUNITY',
-    title: 'Vibrant Campus Life by the River Ganga',
-    subtitle: 'Student welfare amenities, hostel maintenance grievance support, and club facility booking.',
-    location: 'Residential & Academic Sector, Sabour Campus',
+    image: '/images/iiitbh_lab.jpg',
+    tag: 'ROBOTICS & VLSI LABS',
+    title: 'Advanced Laboratories & Research Arenas',
+    subtitle: 'Hands-on experimentation in IoT, Robotics, Embedded Systems, and High Performance Computing.',
+    location: 'Departmental Laboratories & Innovation Hub',
   },
   {
     id: 3,
-    image: '/images/iiitbh_campus_1.jpg',
-    tag: 'INSTITUTE INFRASTRUCTURE',
-    title: 'Holistic Student Support & Welfare Cell',
-    subtitle: 'Confidential administrative resolution, certified email whitelisting, and verified mentors.',
-    location: 'Campus Guest & Administrative Facilities',
+    image: '/images/iiitbh_auditorium.jpg',
+    tag: 'CONVOCATION & AUDITORIUM',
+    title: 'Campus Auditoriums & Seminar Halls',
+    subtitle: 'Hosting international symposia, institute convocations, guest lectures, and student hackathons.',
+    location: 'Central Auditorium & Convention Center',
+  },
+  {
+    id: 4,
+    image: '/images/iiitbh_hostel.jpg',
+    tag: 'STUDENT RESIDENCE & LIFE',
+    title: 'Modern Hostels & Student Well-Being',
+    subtitle: 'Comfortable hostel accommodation with high-speed campus LAN, sports facilities, and 24x7 proctorial oversight.',
+    location: 'Hostel Blocks & Student Residential Sector',
+  },
+  {
+    id: 5,
+    image: '/images/iiitbh_fest.jpg',
+    tag: 'CULTURAL FEST & TARANG',
+    title: 'Tarang • Vibrance, Arts & Innovation',
+    subtitle: 'Annual institutional fest celebrating creativity, technical hackathons, music performances, and campus camaraderie.',
+    location: 'Open Air Amphitheatre & Campus Arena',
+  },
+  {
+    id: 6,
+    image: '/images/iiitbh_campus_infrastructure.jpg',
+    tag: 'INSTITUTE REGISTRY & SERVICES',
+    title: 'Mitra Intranet • Student Care & Mentorship',
+    subtitle: 'Academic vault, confidential grievances, senior peer mentors, and transparent facility reservations.',
+    location: 'Administrative Complex, Sabour Campus',
   },
 ];
 
@@ -178,7 +202,7 @@ export const CampusHeroSlider: React.FC<CampusHeroSliderProps> = ({ user }) => {
             />
           ))}
           <span className="text-[11px] text-slate-400 ml-2 font-mono">
-            0{currentSlide + 1} / 0{SLIDES.length}
+            {(currentSlide + 1).toString().padStart(2, '0')} / {SLIDES.length.toString().padStart(2, '0')}
           </span>
         </div>
 

@@ -67,6 +67,10 @@
 }
 
 /* Subtle Glassmorphism */
+html {
+  scroll-behavior: smooth;
+}
+
 .glass-panel {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
@@ -88,6 +92,35 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Floating animation for hero tags and badges */
+@keyframes subtleFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-subtle-float {
+  animation: subtleFloat 4s ease-in-out infinite;
+}
+
+/* Interactive photo card zoom and overlay */
+.photo-card-hover {
+  overflow: hidden;
+  position: relative;
+}
+
+.photo-card-hover img {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
+}
+
+.photo-card-hover:hover img {
+  transform: scale(1.06);
+  filter: brightness(1.05);
+}
+
 /* Campus Photo Scrim Overlays */
 .campus-scrim-dark {
   background: linear-gradient(180deg, rgba(8, 12, 20, 0.6) 0%, rgba(8, 12, 20, 0.92) 100%);
@@ -98,5 +131,18 @@
 }
 
 .campus-banner-scrim {
-  background: linear-gradient(90deg, rgba(8, 12, 20, 0.92) 0%, rgba(8, 12, 20, 0.75) 55%, rgba(8, 12, 20, 0.35) 100%);
+  background: linear-gradient(90deg, rgba(8, 12, 20, 0.94) 0%, rgba(8, 12, 20, 0.8) 55%, rgba(8, 12, 20, 0.4) 100%);
+}
+
+/* Gradient text accent */
+.gradient-text-iiitbh {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .gradient-text-iiitbh {
+  background: linear-gradient(135deg, #60a5fa 0%, #93c5fd 50%, #bfdbfe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { ScrollReveal } from '../components/common/ScrollReveal';
 
 export const StudyMaterialsPage: React.FC = () => {
   const { user } = useAuth();
@@ -150,26 +151,40 @@ export const StudyMaterialsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-brand-700 dark:text-brand-400" />
-            Academic Resource Vault & Repository
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Departmental lecture notes, verified PYQs, lab manuals, and course reference guides.
-          </p>
-        </div>
+      {/* Campus Photo Header Banner */}
+      <ScrollReveal animation="fade">
+        <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 p-6 sm:p-8 bg-slate-900 text-white min-h-[160px] flex flex-col justify-between shadow-xs">
+          <img
+            src="/images/iiitbh_academic_block.jpg"
+            alt="IIIT Bhagalpur Academic Block"
+            className="absolute inset-0 w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-1000 ease-out"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-slate-900/60" />
 
-        <button
-          onClick={() => setIsUploadOpen(true)}
-          className="btn-tactile px-3.5 py-2 rounded-lg bg-brand-800 hover:bg-brand-900 text-white font-medium text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto"
-        >
-          <UploadCloud className="w-4 h-4" />
-          <span>Upload Document</span>
-        </button>
-      </div>
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-blue-300 mb-1">
+                <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+                <span>ADHYAAY Verified Academic Vault • 270+ Resources</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                Academic Resource Vault & Repository
+              </h1>
+              <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                Official IIIT Bhagalpur lecture notes, midsem & endsem question papers (PYQs), lab manuals, and syllabus guides across all 4 departments and 7 semesters.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsUploadOpen(true)}
+              className="btn-tactile px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-2 transition-all shadow-md self-start sm:self-auto shrink-0"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>Upload Document</span>
+            </button>
+          </div>
+        </div>
+      </ScrollReveal>
 
       {/* Notification Banner */}
       {notification && (
@@ -270,97 +285,103 @@ export const StudyMaterialsPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          (materials || []).map((mat) => (
-            <div
+          (materials || []).map((mat, idx) => (
+            <ScrollReveal
               key={mat.id}
-              className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+              animation="slide-up"
+              delay={(idx % 6) * 50}
+              className="h-full"
             >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[10px] font-semibold uppercase text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
-                    {mat.category}
-                  </span>
-                  <span className="text-[11px] font-mono text-slate-400">
-                    {formatFileSize(mat.file_size)} • {mat.file_type}
-                  </span>
-                </div>
-
-                <h3 className="font-bold text-slate-900 dark:text-white text-xs line-clamp-1">
-                  {mat.title}
-                </h3>
-                <p className="text-xs font-medium text-blue-800 dark:text-blue-400 mt-0.5 truncate">
-                  {mat.subject}
-                </p>
-
-                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">
-                  {mat.description || 'Verified academic resource uploaded for departmental coursework.'}
-                </p>
-
-                {mat.tags && (
-                  <div className="flex flex-wrap gap-1 mt-2.5">
-                    {(typeof mat.tags === 'string'
-                      ? mat.tags.split(',')
-                      : Array.isArray(mat.tags)
-                      ? mat.tags
-                      : []
-                    ).map((tag: string) => (
-                      <span
-                        key={tag}
-                        className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500"
-                      >
-                        #{typeof tag === 'string' ? tag.trim() : tag}
-                      </span>
-                    ))}
+              <div
+                className="human-card p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-blue-500/50 dark:hover:border-blue-400/50 hover:shadow-lg transition-all h-full"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-[10px] font-semibold uppercase text-blue-900 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800">
+                      {mat.category}
+                    </span>
+                    <span className="text-[11px] font-mono text-slate-400">
+                      {formatFileSize(mat.file_size)} • {mat.file_type}
+                    </span>
                   </div>
-                )}
 
-                <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-500 flex items-center justify-between">
-                  <span>{mat.semester} • {mat.department}</span>
-                  <span>{mat.downloads_count} downloads</span>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-xs line-clamp-1">
+                    {mat.title}
+                  </h3>
+                  <p className="text-xs font-medium text-blue-700 dark:text-blue-400 mt-0.5 truncate">
+                    {mat.subject}
+                  </p>
+
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">
+                    {mat.description || 'Verified academic resource uploaded for departmental coursework.'}
+                  </p>
+
+                  {mat.tags && (
+                    <div className="flex flex-wrap gap-1 mt-2.5">
+                      {(typeof mat.tags === 'string'
+                        ? mat.tags.split(',')
+                        : Array.isArray(mat.tags)
+                        ? mat.tags
+                        : []
+                      ).map((tag: string) => (
+                        <span
+                          key={tag}
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500"
+                        >
+                          #{typeof tag === 'string' ? tag.trim() : tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-500 flex items-center justify-between">
+                    <span>{mat.semester} • {mat.department}</span>
+                    <span>{mat.downloads_count} downloads</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                  {mat.file_path && (mat.file_path.startsWith('http://') || mat.file_path.startsWith('https://')) ? (
+                    <a
+                      href={mat.file_path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 py-1.5 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Open Drive Vault</span>
+                    </a>
+                  ) : (
+                    <a
+                      href={`/api/materials/${mat.id}/download`}
+                      className="flex-1 py-1.5 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Document</span>
+                    </a>
+                  )}
+
+                  <button
+                    onClick={() => setReportTargetId(mat.id)}
+                    title="Report Content"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                  </button>
+
+                  {(mat.is_owner || user?.role === 'super_admin' || user?.role === 'admin') && (
+                    <button
+                      onClick={() => handleDelete(mat.id)}
+                      title="Delete File"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
-
-              {/* Actions */}
-              <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                {mat.file_path && (mat.file_path.startsWith('http://') || mat.file_path.startsWith('https://')) ? (
-                  <a
-                    href={mat.file_path}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 py-1.5 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Open Drive Vault</span>
-                  </a>
-                ) : (
-                  <a
-                    href={`/api/materials/${mat.id}/download`}
-                    className="flex-1 py-1.5 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-colors"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Download Document</span>
-                  </a>
-                )}
-
-                <button
-                  onClick={() => setReportTargetId(mat.id)}
-                  title="Report Content"
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                </button>
-
-                {(mat.is_owner || user?.role === 'super_admin' || user?.role === 'admin') && (
-                  <button
-                    onClick={() => handleDelete(mat.id)}
-                    title="Delete File"
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            </div>
+            </ScrollReveal>
           ))
         )}
       </div>

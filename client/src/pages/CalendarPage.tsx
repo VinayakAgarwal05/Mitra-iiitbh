@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import api, { getSocketUrl } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { ScrollReveal } from '../components/common/ScrollReveal';
 
 export const CalendarPage: React.FC = () => {
   const { user, isAdmin, token } = useAuth();
@@ -211,262 +212,305 @@ export const CalendarPage: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <CalendarIcon className="w-5 h-5 text-brand-700 dark:text-brand-400" />
-            Campus Academic & Activity Calendar
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Official institutional timeline: examinations, hackathons, seminars, placement drives, and club activities.
-          </p>
-        </div>
+      {/* Visual Campus Hero Banner */}
+      <ScrollReveal direction="slide-down" delay={50}>
+        <div className="relative rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800/80 shadow-md">
+          <div className="relative h-44 sm:h-52 w-full">
+            <img
+              src="/images/iiitbh_auditorium.jpg"
+              alt="IIIT Bhagalpur Convention Hall"
+              className="w-full h-full object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-slate-900/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          {canCreateEvent && (
-            <button
-              onClick={() => {
-                setFormError(null);
-                setFormSuccess(null);
-                setIsCreateModalOpen(true);
-              }}
-              className="px-3 py-1.5 rounded-lg bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Publish Event</span>
-            </button>
-          )}
+            <div className="absolute inset-0 p-5 sm:p-7 flex flex-col justify-between text-white">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <span className="glass-chip px-3 py-1 rounded-full text-[10px] font-semibold text-blue-200 uppercase tracking-wider">
+                  Campus Institutional Timeline
+                </span>
+                <div className="flex items-center gap-2 text-xs text-slate-300">
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Permanent Campus • Sabour</span>
+                </div>
+              </div>
 
-          <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-lg flex items-center">
-            <button
-              onClick={() => setViewMode('month')}
-              className={`btn-tactile px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-                viewMode === 'month'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400'
-              }`}
-            >
-              Month View
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`btn-tactile px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-                viewMode === 'list'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400'
-              }`}
-            >
-              Upcoming List
-            </button>
+              <div>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
+                  <CalendarIcon className="w-6 h-6 text-blue-400" />
+                  Campus Academic & Activity Calendar
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                  Institutional examination cycles, inter-college hackathons, research colloquiums, placement drives, and verified facility bookings.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </ScrollReveal>
+
+      {/* Header Bar */}
+      <ScrollReveal direction="slide-up" delay={100}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              Showing {events.length} schedule entries for{' '}
+              <strong className="text-slate-900 dark:text-white">
+                {monthNames[month]} {year}
+              </strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {canCreateEvent && (
+              <button
+                onClick={() => {
+                  setFormError(null);
+                  setFormSuccess(null);
+                  setIsCreateModalOpen(true);
+                }}
+                className="btn-tactile px-3.5 py-2 rounded-lg bg-brand-800 hover:bg-brand-900 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Publish Event</span>
+              </button>
+            )}
+
+            <div className="bg-slate-200 dark:bg-slate-800 p-1 rounded-lg flex items-center">
+              <button
+                onClick={() => setViewMode('month')}
+                className={`btn-tactile px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                  viewMode === 'month'
+                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                Month View
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`btn-tactile px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                  viewMode === 'list'
+                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                Upcoming List
+              </button>
+            </div>
+          </div>
+        </div>
+      </ScrollReveal>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search events, workshops, guest lectures, or locations..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3.5 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600"
-          />
-        </div>
+      <ScrollReveal direction="fade" delay={150}>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search events, workshops, guest lectures, or locations..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3.5 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+          </div>
 
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
-        >
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat === 'all'
-                ? 'All Events & Booked Slots'
-                : cat === 'booked_slot'
-                ? '📌 Booked Facility Slots'
-                : cat.replace('_', ' ').toUpperCase()}
-            </option>
-          ))}
-        </select>
-      </div>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-3.5 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          >
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat === 'all'
+                  ? 'All Events & Booked Slots'
+                  : cat === 'booked_slot'
+                  ? '📌 Booked Facility Slots'
+                  : cat.replace('_', ' ').toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+      </ScrollReveal>
 
       {/* View Mode: Month Calendar */}
       {viewMode === 'month' ? (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
-          {/* Month Header Navigation */}
-          <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-              {monthNames[month]} {year}
-            </h2>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={prevMonth}
-                className="p-1 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={nextMonth}
-                className="p-1 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Days of week */}
-          <div className="grid grid-cols-7 gap-1.5 mb-1.5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-            <span>Sun</span>
-            <span>Mon</span>
-            <span>Tue</span>
-            <span>Wed</span>
-            <span>Thu</span>
-            <span>Fri</span>
-            <span>Sat</span>
-          </div>
-
-          {/* Calendar Day Grid */}
-          <div className="grid grid-cols-7 gap-1.5">
-            {Array.from({ length: firstDay }).map((_, i) => (
-              <div key={`empty-${i}`} className="min-h-[80px] rounded-lg bg-slate-50 dark:bg-slate-800/20" />
-            ))}
-
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1;
-              const dayEvents = events.filter((e) => {
-                const eDate = new Date(e.start_time);
-                return (
-                  eDate.getDate() === day &&
-                  eDate.getMonth() === month &&
-                  eDate.getFullYear() === year
-                );
-              });
-
-              const isToday =
-                new Date().getDate() === day &&
-                new Date().getMonth() === month &&
-                new Date().getFullYear() === year;
-
-              return (
-                <div
-                  key={day}
-                  className={`min-h-[80px] p-2 rounded-lg border transition-all flex flex-col justify-between ${
-                    isToday
-                      ? 'bg-blue-50/50 dark:bg-blue-950/30 border-blue-600'
-                      : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-800'
-                  }`}
-                >
-                  <span
-                    className={`text-xs font-bold ${
-                      isToday
-                        ? 'w-5 h-5 rounded bg-blue-900 text-white flex items-center justify-center text-[10px]'
-                        : 'text-slate-700 dark:text-slate-300'
-                    }`}
-                  >
-                    {day}
-                  </span>
-
-                  <div className="space-y-1 mt-1">
-                    {dayEvents.slice(0, 2).map((evt) => (
-                      <button
-                        key={evt.id}
-                        onClick={() => setSelectedEvent(evt)}
-                        className={`w-full text-left p-1 rounded text-[10px] font-semibold truncate transition-all ${
-                          evt.is_slot_booking
-                            ? evt.booking_status === 'approved'
-                              ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 hover:bg-teal-500/25'
-                              : 'bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
-                        }`}
-                        title={evt.title}
-                      >
-                        {evt.title}
-                      </button>
-                    ))}
-                    {dayEvents.length > 2 && (
-                      <span className="text-[10px] text-slate-400 pl-0.5">
-                        +{dayEvents.length - 2} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        /* View Mode: List */
-        <div className="space-y-3">
-          {events.map((evt) => (
-            <div
-              key={evt.id}
-              onClick={() => setSelectedEvent(evt)}
-              className={`p-4 rounded-xl bg-white dark:bg-slate-900 border shadow-xs hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                evt.is_slot_booking
-                  ? evt.booking_status === 'approved'
-                    ? 'border-teal-500/30 bg-teal-500/[0.02]'
-                    : 'border-amber-500/30 bg-amber-500/[0.02]'
-                  : 'border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded border ${
-                      evt.is_slot_booking
-                        ? evt.booking_status === 'approved'
-                          ? 'bg-teal-500/15 text-teal-300 border-teal-500/30'
-                          : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                        : 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-transparent'
-                    }`}
-                  >
-                    {evt.is_slot_booking
-                      ? evt.booking_status === 'approved'
-                        ? '📌 Facility Reserved'
-                        : '⏳ Pending Reservation'
-                      : evt.category}
-                  </span>
-                  <span className="text-xs text-slate-500">
-                    Host: <strong className="text-slate-700 dark:text-slate-300">{evt.organizer}</strong>
-                  </span>
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                  {evt.title}
-                </h3>
-                <p className="text-xs text-slate-500 flex items-center gap-3 flex-wrap">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    {new Date(evt.start_time).toLocaleString(undefined, {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    })}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                    {evt.venue}
-                  </span>
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
+        <ScrollReveal direction="slide-up" delay={150}>
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+            {/* Month Header Navigation */}
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                {monthNames[month]} {year}
+              </h2>
+              <div className="flex items-center gap-1">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedEvent(evt);
-                  }}
-                  className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-colors ${
-                    evt.is_slot_booking
-                      ? 'bg-teal-500 hover:bg-teal-600 text-slate-950 font-semibold'
-                      : 'bg-slate-800 hover:bg-slate-700 text-white'
-                  }`}
+                  onClick={prevMonth}
+                  className="p-1 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
-                  View Details
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={nextMonth}
+                  className="p-1 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
+
+            {/* Days of week */}
+            <div className="grid grid-cols-7 gap-1.5 mb-1.5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <span>Sun</span>
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+            </div>
+
+            {/* Calendar Day Grid */}
+            <div className="grid grid-cols-7 gap-1.5">
+              {Array.from({ length: firstDay }).map((_, i) => (
+                <div key={`empty-${i}`} className="min-h-[80px] rounded-lg bg-slate-50 dark:bg-slate-800/20" />
+              ))}
+
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const dayEvents = events.filter((e) => {
+                  const eDate = new Date(e.start_time);
+                  return (
+                    eDate.getDate() === day &&
+                    eDate.getMonth() === month &&
+                    eDate.getFullYear() === year
+                  );
+                });
+
+                const isToday =
+                  new Date().getDate() === day &&
+                  new Date().getMonth() === month &&
+                  new Date().getFullYear() === year;
+
+                return (
+                  <div
+                    key={day}
+                    className={`min-h-[80px] p-2 rounded-lg border transition-all flex flex-col justify-between ${
+                      isToday
+                        ? 'bg-blue-50/50 dark:bg-blue-950/30 border-blue-600'
+                        : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-800'
+                    }`}
+                  >
+                    <span
+                      className={`text-xs font-bold ${
+                        isToday
+                          ? 'w-5 h-5 rounded bg-blue-900 text-white flex items-center justify-center text-[10px]'
+                          : 'text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      {day}
+                    </span>
+
+                    <div className="space-y-1 mt-1">
+                      {dayEvents.slice(0, 2).map((evt) => (
+                        <button
+                          key={evt.id}
+                          onClick={() => setSelectedEvent(evt)}
+                          className={`w-full text-left p-1 rounded text-[10px] font-semibold truncate transition-all ${
+                            evt.is_slot_booking
+                              ? evt.booking_status === 'approved'
+                                ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 hover:bg-teal-500/25'
+                                : 'bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
+                          }`}
+                          title={evt.title}
+                        >
+                          {evt.title}
+                        </button>
+                      ))}
+                      {dayEvents.length > 2 && (
+                        <span className="text-[10px] text-slate-400 pl-0.5">
+                          +{dayEvents.length - 2} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </ScrollReveal>
+      ) : (
+        /* View Mode: List */
+        <div className="space-y-3">
+          {events.map((evt, idx) => (
+            <ScrollReveal key={evt.id} direction="slide-up" delay={(idx % 6) * 50}>
+              <div
+                onClick={() => setSelectedEvent(evt)}
+                className={`p-4 rounded-xl bg-white dark:bg-slate-900 border shadow-xs hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                  evt.is_slot_booking
+                    ? evt.booking_status === 'approved'
+                      ? 'border-teal-500/30 bg-teal-500/[0.02]'
+                      : 'border-amber-500/30 bg-amber-500/[0.02]'
+                    : 'border-slate-200 dark:border-slate-800'
+                }`}
+              >
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded border ${
+                        evt.is_slot_booking
+                          ? evt.booking_status === 'approved'
+                            ? 'bg-teal-500/15 text-teal-300 border-teal-500/30'
+                            : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                          : 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-transparent'
+                      }`}
+                    >
+                      {evt.is_slot_booking
+                        ? evt.booking_status === 'approved'
+                          ? '📌 Facility Reserved'
+                          : '⏳ Pending Reservation'
+                        : evt.category}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      Host: <strong className="text-slate-700 dark:text-slate-300">{evt.organizer}</strong>
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                    {evt.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 flex items-center gap-3 flex-wrap">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      {new Date(evt.start_time).toLocaleString(undefined, {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                      {evt.venue}
+                    </span>
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedEvent(evt);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-colors ${
+                      evt.is_slot_booking
+                        ? 'bg-teal-500 hover:bg-teal-600 text-slate-950 font-semibold'
+                        : 'bg-slate-800 hover:bg-slate-700 text-white'
+                    }`}
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+            </ScrollReveal>
           ))}
         </div>
       )}

@@ -10,9 +10,11 @@ import {
   ArrowRight,
   Shield,
   Search,
+  Sparkles,
 } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { ScrollReveal } from '../components/common/ScrollReveal';
 
 export const CareerRoomsPage: React.FC = () => {
   const { dailyUsage, refreshUser } = useAuth();
@@ -84,38 +86,52 @@ export const CareerRoomsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-            <Briefcase className="w-5 h-5 text-brand-700 dark:text-brand-400" />
-            Career Path Preparation Rooms
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Collaborative preparation communities for competitive exams, engineering, and corporate placements.
-          </p>
-        </div>
+      {/* Campus Photo Header */}
+      <ScrollReveal animation="fade">
+        <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 p-6 sm:p-8 bg-slate-900 text-white min-h-[160px] flex flex-col justify-between shadow-xs">
+          <img
+            src="/images/iiitbh_panoramic.jpg"
+            alt="IIIT Bhagalpur Campus Aerial Panorama"
+            className="absolute inset-0 w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-1000 ease-out"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-slate-900/60" />
 
-        {/* Membership quota badge */}
-        <div className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-3">
-          <div>
-            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-              Enrolled Quota
-            </p>
-            <p className="text-xs text-slate-700 dark:text-slate-200">
-              Joined:{' '}
-              <span className="font-bold font-mono text-slate-900 dark:text-white">
-                {joinedCount} / {maxRoomsAllowed} Max
-              </span>
-            </p>
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-blue-300 mb-1">
+                <Briefcase className="w-3.5 h-3.5 text-blue-400" />
+                <span>Professional & Competitive Examination Circles</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                Career Path Preparation Rooms
+              </h1>
+              <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+                Anonymous student tracks for GATE, Coding Placements, Software Development, UPSC, and Higher Studies with daily discussion allowances.
+              </p>
+            </div>
+
+            {/* Membership quota badge */}
+            <div className="px-4 py-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white self-start sm:self-auto shrink-0 flex items-center gap-3">
+              <div>
+                <p className="text-[10px] font-semibold text-slate-300 uppercase tracking-wider">
+                  Enrolled Quota
+                </p>
+                <p className="text-xs text-white font-medium">
+                  Joined:{' '}
+                  <span className="font-bold font-mono text-emerald-400">
+                    {joinedCount} / {maxRoomsAllowed} Max
+                  </span>
+                </p>
+              </div>
+              {joinedCount >= maxRoomsAllowed && (
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-medium">
+                  Quota Filled
+                </span>
+              )}
+            </div>
           </div>
-          {joinedCount >= maxRoomsAllowed && (
-            <span className="text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded font-medium">
-              Quota Filled
-            </span>
-          )}
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* Notifications */}
       {actionError && (
@@ -175,80 +191,86 @@ export const CareerRoomsPage: React.FC = () => {
 
       {/* Career Rooms Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredRooms.map((room) => {
+        {filteredRooms.map((room, idx) => {
           const isFull = joinedCount >= maxRoomsAllowed && !room.is_member;
 
           return (
-            <div
+            <ScrollReveal
               key={room.id}
-              className={`human-card rounded-xl border transition-all flex flex-col justify-between ${
-                room.is_member
-                  ? 'bg-blue-50/30 dark:bg-blue-950/20 border-brand-300 dark:border-brand-900 shadow-xs'
-                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-brand-500/50 dark:hover:border-brand-500/50'
-              } p-4`}
+              animation="slide-up"
+              delay={(idx % 6) * 60}
+              className="h-full"
             >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
-                    {room.category}
-                  </span>
-                  {room.is_member && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-800 dark:text-blue-300">
-                      <CheckCircle className="w-3.5 h-3.5" /> Enrolled
+              <div
+                className={`human-card rounded-xl border transition-all flex flex-col justify-between h-full ${
+                  room.is_member
+                    ? 'bg-blue-50/40 dark:bg-blue-950/20 border-blue-300 dark:border-blue-900 shadow-xs'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-500/50 dark:hover:border-blue-400/50 hover:shadow-lg'
+                } p-5`}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-900 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800">
+                      {room.category}
                     </span>
+                    {room.is_member && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle className="w-3.5 h-3.5" /> Enrolled
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {room.name}
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 line-clamp-3 leading-relaxed">
+                    {room.description}
+                  </p>
+
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500">
+                    <span className="flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-slate-400" />
+                      {room.member_count} enrolled students
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                  {room.is_member ? (
+                    <>
+                      <Link
+                        to={`/career-rooms/${room.id}`}
+                        className="flex-1 py-2 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs text-center flex items-center justify-center gap-1 transition-colors shadow-xs"
+                      >
+                        <span>Enter Discussion</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                      <button
+                        onClick={() => handleLeave(room.id)}
+                        title="Leave Room"
+                        className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => handleJoin(room.id)}
+                      disabled={isFull}
+                      className={`w-full py-2 px-3 rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 transition-colors ${
+                        isFull
+                          ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                          : 'bg-blue-900 hover:bg-blue-800 text-white shadow-xs'
+                      }`}
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      {isFull ? 'Limit Reached (2 Rooms Max)' : 'Enroll in Track'}
+                    </button>
                   )}
                 </div>
-
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  {room.name}
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 line-clamp-3 leading-relaxed">
-                  {room.description}
-                </p>
-
-                <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500">
-                  <span className="flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-slate-400" />
-                    {room.member_count} enrolled students
-                  </span>
-                </div>
               </div>
-
-              {/* Action Buttons */}
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                {room.is_member ? (
-                  <>
-                    <Link
-                      to={`/career-rooms/${room.id}`}
-                      className="flex-1 py-1.5 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs text-center flex items-center justify-center gap-1 transition-colors"
-                    >
-                      <span>Enter Discussion</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                    <button
-                      onClick={() => handleLeave(room.id)}
-                      title="Leave Room"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => handleJoin(room.id)}
-                    disabled={isFull}
-                    className={`w-full py-2 px-3 rounded-lg font-medium text-xs flex items-center justify-center gap-1.5 transition-colors ${
-                      isFull
-                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-                        : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90'
-                    }`}
-                  >
-                    <PlusCircle className="w-3.5 h-3.5" />
-                    {isFull ? 'Limit Reached (2 Rooms Max)' : 'Enroll in Room'}
-                  </button>
-                )}
-              </div>
-            </div>
+            </ScrollReveal>
           );
         })}
       </div>

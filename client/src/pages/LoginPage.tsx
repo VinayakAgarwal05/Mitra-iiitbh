@@ -12,38 +12,54 @@ import {
   MapPin,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { ScrollReveal } from '../components/common/ScrollReveal';
 
 const LOGIN_SLIDES = [
   {
-    image: '/images/iiitbh_drone_aerial.jpg',
+    image: '/images/iiitbh_panoramic.jpg',
     tag: 'PERMANENT CAMPUS • SABOUR',
-    title: 'A verified digital home for the students of IIIT Bhagalpur.',
-    subtitle: 'Collaborate anonymously in Career Path Rooms, access verified study materials, and report campus concerns privately.',
+    title: 'A Modern Sanctuary of Tech Excellence on River Ganga.',
+    subtitle: 'Ultra-modern 50-acre permanent campus at Sabour, Bhagalpur featuring state-of-the-art academic complexes and compute infrastructure.',
     location: 'Sabour, Bhagalpur (25.2425° N, 87.0177° E)',
   },
   {
     image: '/images/iiitbh_academic_block.jpg',
-    tag: 'ACADEMIC COMPLEX',
-    title: 'Cutting-Edge Laboratories & Research Clusters.',
-    subtitle: 'High-performance computing resources, IoT development labs, and automated campus facility bookings.',
-    location: 'Main Academic Block, Sabour Campus',
+    tag: 'MAIN ACADEMIC COMPLEX',
+    title: 'Smart Lecture Theatres & Research Clusters.',
+    subtitle: 'Acoustically treated amphitheaters, multimedia learning auditoriums, and high-performance computing facilities.',
+    location: 'Academic Complex, Sabour Campus',
   },
   {
-    image: '/images/iiitbh_campus_infrastructure.jpg',
-    tag: 'STUDENT RESIDENCE & LIFE',
-    title: 'Inter-Batch Knowledge Exchange & Community.',
-    subtitle: 'Engage with senior mentors, coordinate club activities, and exchange guidance with complete identity privacy.',
-    location: 'Residential Campus & Quadrangle',
+    image: '/images/iiitbh_lab.jpg',
+    tag: 'ADVANCED RESEARCH LABS',
+    title: 'Artificial Intelligence, Robotics & VLSI Laboratories.',
+    subtitle: 'Hands-on experimentation environments equipped for cutting-edge semiconductor, machine learning, and IoT research.',
+    location: 'Research Block, IIIT Bhagalpur',
   },
   {
-    image: '/images/iiitbh_campus_1.jpg',
-    tag: 'ADMINISTRATIVE SUPPORT',
-    title: 'Confidential Grievance & Student Welfare Cell.',
-    subtitle: 'Direct encrypted communication with institute authorities for swift resolution of campus and hostel issues.',
-    location: 'Administrative Complex, IIIT Bhagalpur',
+    image: '/images/iiitbh_auditorium.jpg',
+    tag: 'CONVOCATION CONVENTION HALL',
+    title: 'Grand Auditorium & Institutional Symposia.',
+    subtitle: 'Venue for international conferences, national hackathons, cultural festivals, and institute convocations.',
+    location: 'Central Auditorium, Sabour',
+  },
+  {
+    image: '/images/iiitbh_hostel.jpg',
+    tag: 'RESIDENTIAL SECTOR',
+    title: 'Serene Residential Life Along the Ganga.',
+    subtitle: 'Wi-Fi enabled student hostels with reading halls, indoor recreation, and 24/7 high-speed connectivity.',
+    location: 'Brahmaputra & Ganga Hostels',
+  },
+  {
+    image: '/images/iiitbh_fest.jpg',
+    tag: 'TARANG CULTURAL FESTIVAL',
+    title: 'Vibrant Campus Life, Arts & Inter-College Meets.',
+    subtitle: 'Celebration of student innovation, competitive robotics, musical nights, and inter-batch synergy.',
+    location: 'Open-Air Amphitheatre, Sabour',
   },
 ];
 
@@ -182,19 +198,40 @@ export const LoginPage: React.FC = () => {
 
         {/* Bottom Slide Indicators & Footer info */}
         <div className="relative z-20 flex items-center justify-between flex-wrap gap-3 pt-4 border-t border-white/10 text-xs">
-          <div className="flex items-center gap-2">
-            {LOGIN_SLIDES.map((s, idx) => (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
               <button
-                key={s.image}
-                onClick={() => setSlideIdx(idx)}
-                aria-label={`Show slide ${idx + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  idx === slideIdx
-                    ? 'w-7 bg-white'
-                    : 'w-2 bg-white/40 hover:bg-white/70'
-                }`}
-              />
-            ))}
+                type="button"
+                onClick={() => setSlideIdx((prev) => (prev - 1 + LOGIN_SLIDES.length) % LOGIN_SLIDES.length)}
+                className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setSlideIdx((prev) => (prev + 1) % LOGIN_SLIDES.length)}
+                className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-colors"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {LOGIN_SLIDES.map((s, idx) => (
+                <button
+                  key={s.image}
+                  onClick={() => setSlideIdx(idx)}
+                  aria-label={`Show slide ${idx + 1}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    idx === slideIdx
+                      ? 'w-7 bg-white shadow-xs'
+                      : 'w-2 bg-white/40 hover:bg-white/70'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
 
           <span className="text-[11px] text-slate-400">
@@ -205,7 +242,7 @@ export const LoginPage: React.FC = () => {
 
       {/* Right Column: Authentication Card */}
       <div className="lg:w-1/2 flex items-center justify-center p-6 sm:p-10 lg:p-12 bg-slate-50 dark:bg-slate-950">
-        <div className="w-full max-w-md space-y-6 animate-fadeIn">
+        <ScrollReveal direction="slide-left" delay={100} className="w-full max-w-md space-y-6">
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300 uppercase tracking-wider mb-1">
               <Shield className="w-3.5 h-3.5" />
@@ -335,7 +372,7 @@ export const LoginPage: React.FC = () => {
               </p>
             </div>
           </div>
-        </div>
+        </ScrollReveal>
       </div>
     </div>
   );

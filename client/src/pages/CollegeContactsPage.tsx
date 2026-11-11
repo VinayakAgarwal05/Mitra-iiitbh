@@ -11,6 +11,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import api from '../api/client';
+import { ScrollReveal } from '../components/common/ScrollReveal';
 
 const LinkedInIcon: React.FC = () => (
   <svg className="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
@@ -122,11 +123,16 @@ export const CollegeContactsPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          (contacts || []).map((contact) => (
-            <div
+          (contacts || []).map((contact, idx) => (
+            <ScrollReveal
               key={contact.id}
-              className="human-card p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-brand-500/50 dark:hover:border-brand-500/50 transition-all"
+              animation="slide-up"
+              delay={(idx % 6) * 50}
+              className="h-full"
             >
+              <div
+                className="human-card p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-blue-500/50 dark:hover:border-blue-400/50 hover:shadow-lg transition-all h-full"
+              >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2.5">
                   <span className="text-[10px] font-semibold uppercase text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
@@ -226,7 +232,8 @@ export const CollegeContactsPage: React.FC = () => {
                 )}
               </div>
             </div>
-          ))
+          </ScrollReveal>
+        ))
         )}
       </div>
     </div>

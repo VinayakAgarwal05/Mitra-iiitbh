@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import api, { getSocketUrl } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { ScrollReveal } from '../components/common/ScrollReveal';
 
 export const StudentConnectPage: React.FC = () => {
   const { user, token, dailyUsage, refreshUser } = useAuth();
@@ -267,34 +268,45 @@ export const StudentConnectPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto animate-fadeIn">
-      {/* Page Header */}
-      <div className="border-b border-slate-200/80 dark:border-slate-800/80 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300 uppercase tracking-wider mb-1">
-            <Lock className="w-3.5 h-3.5" />
-            <span>Anonymous Academic Intranet Board</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Student Connect
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Cross-batch student exchange, project collaborations, and senior guidance. All communications preserve complete individual privacy while upholding campus conduct standards.
-          </p>
-        </div>
+      {/* Campus Photo Header Banner */}
+      <ScrollReveal animation="fade">
+        <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 p-6 sm:p-8 bg-slate-900 text-white min-h-[160px] flex flex-col justify-between shadow-xs">
+          <img
+            src="/images/iiitbh_fest.jpg"
+            alt="IIIT Bhagalpur Campus Life & Cultural Energy"
+            className="absolute inset-0 w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-1000 ease-out"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-slate-900/60" />
 
-        {/* Quota tracker */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-xl p-3 text-right shrink-0 shadow-xs">
-          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            Daily Message Quota
-          </div>
-          <div className="text-sm font-semibold text-slate-900 dark:text-white mt-0.5">
-            <span className="font-mono text-brand-700 dark:text-brand-400 font-bold">
-              {remainingDailyMessages}
-            </span>
-            <span className="text-slate-400"> / 10 remaining</span>
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-blue-300 mb-1">
+                <Lock className="w-3.5 h-3.5 text-blue-400" />
+                <span>Anonymous Academic Intranet Board • Identity Protected</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                Student Connect
+              </h1>
+              <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                Cross-batch student exchange, project collaborations, and senior guidance. All communications preserve complete individual privacy while upholding campus conduct standards.
+              </p>
+            </div>
+
+            {/* Quota tracker */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 text-right shrink-0 shadow-xs text-white">
+              <div className="text-[10px] font-semibold text-slate-300 uppercase tracking-wider">
+                Daily Message Quota
+              </div>
+              <div className="text-sm font-semibold text-white mt-0.5">
+                <span className="font-mono text-emerald-400 font-bold">
+                  {remainingDailyMessages}
+                </span>
+                <span className="text-slate-300"> / 10 remaining</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* Notification Banner */}
       {notification && (
@@ -433,13 +445,17 @@ export const StudentConnectPage: React.FC = () => {
             No active discussions found for the specified criteria.
           </div>
         ) : (
-          (posts || []).map((post) => {
+          (posts || []).map((post, idx) => {
             const isMyPost = Boolean(user?.id && post.user_id ? post.user_id === user.id : post.is_self);
             return (
-              <article
+              <ScrollReveal
                 key={post.id}
-                className="human-card p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-3 transition-colors hover:border-slate-300 dark:hover:border-slate-700"
+                animation="slide-up"
+                delay={(idx % 5) * 60}
               >
+                <article
+                  className="human-card p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-3 transition-colors hover:border-slate-300 dark:hover:border-slate-700"
+                >
                 {/* Header */}
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -561,8 +577,9 @@ export const StudentConnectPage: React.FC = () => {
                 )}
               </div>
             </article>
-          );
-        })
+          </ScrollReveal>
+        );
+      })
       )}
       </div>
 
