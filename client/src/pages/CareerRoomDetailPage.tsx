@@ -111,10 +111,16 @@ export const CareerRoomDetailPage: React.FC = () => {
         content: inputContent,
       });
 
-      const newMsg = res.data.data;
-      setMessages((prev) => [...prev, newMsg]);
+      const newMsg = res.data?.data || res.data?.message || res.data;
+      if (newMsg && (newMsg.content || newMsg.id)) {
+        setMessages((prev) => [...(Array.isArray(prev) ? prev : []), newMsg]);
+      }
       setInputContent('');
-      setRemainingDailyMessages(res.data.remainingDailyMessages);
+      if (typeof res.data?.remainingDailyMessages === 'number') {
+        setRemainingDailyMessages(res.data.remainingDailyMessages);
+      } else if (typeof res.data?.dailyUsage?.remaining === 'number') {
+        setRemainingDailyMessages(res.data.dailyUsage.remaining);
+      }
       await refreshUser();
       setTimeout(scrollToBottom, 50);
     } catch (err: any) {
@@ -187,7 +193,7 @@ export const CareerRoomDetailPage: React.FC = () => {
 
       {/* Messages Scroll Area */}
       <div className="flex-1 p-4 overflow-y-auto bg-slate-100/60 dark:bg-slate-950/60 border-x border-slate-200 dark:border-slate-800 space-y-3.5">
-        {messages.length === 0 ? (
+        {(messages || []).length === 0 ? (
           <div className="text-center py-12 text-slate-400">
             <GraduationCap className="w-8 h-8 mx-auto mb-2 text-slate-400" />
             <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -198,7 +204,7 @@ export const CareerRoomDetailPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          messages.map((msg) => (
+          (messages || []).map((msg) => (
             <div
               key={msg.id}
               className={`flex flex-col ${msg.is_self ? 'items-end' : 'items-start'}`}

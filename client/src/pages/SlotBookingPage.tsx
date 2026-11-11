@@ -105,9 +105,19 @@ export const SlotBookingPage: React.FC = () => {
     'all',
     'Robotics & IoT Innovation Lab',
     'Main Campus Auditorium',
-    'Music & Cultural Society Room',
-    'Basketball & Sports Court',
-    'Seminar Hall A (Computing Center)',
+    'Computer Centre Lab 1 (High Performance Lab)',
+    'Computer Centre Lab 2 (Software Development Lab)',
+    'High Performance Computing & AI Cluster Lab',
+    'VLSI & Embedded Systems Design Lab',
+    'Seminar Hall 1 (Administrative Complex)',
+    'Seminar Hall 2 (Academic Block)',
+    'Music & Cultural Society Room (Tarang)',
+    'Basketball & Volleyball Sports Court',
+    'Badminton & Table Tennis Indoor Pavilion',
+    'Sports Ground & Cricket Pavilion',
+    'Open Air Amphitheatre & Student Quadrangle',
+    'Central Library Discussion & Study Vault Room',
+    'Conference Room A (Senate & Faculty Hall)',
   ];
 
   const getStatusBadge = (status: string) => {

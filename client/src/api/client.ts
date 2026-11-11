@@ -30,6 +30,341 @@ const isStaticPreview =
     window.location.search.includes('demo=true')
   );
 
+// Security & Administrative Audit Logging Helper
+function addAuditLog(action: string, resource: string, details: string) {
+  try {
+    const logs = JSON.parse(localStorage.getItem('demo_audit_logs') || '[]');
+    const newEntry = {
+      id: 'audit-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      action,
+      resource,
+      details,
+      created_at: new Date().toISOString(),
+    };
+    logs.unshift(newEntry);
+    if (logs.length > 100) logs.length = 100;
+    localStorage.setItem('demo_audit_logs', JSON.stringify(logs));
+  } catch {}
+}
+
+// Initial Audit Logs Seed
+const DEFAULT_AUDIT_LOGS = [
+  {
+    id: 'audit-log-1',
+    action: 'USER_LOGIN',
+    resource: 'auth',
+    details: 'admin@iiitbh.ac.in authenticated via Intranet SSO',
+    created_at: new Date(Date.now() - 300000).toISOString(),
+  },
+  {
+    id: 'audit-log-2',
+    action: 'BOOKING_REQUEST_RECEIVED',
+    resource: 'bookings',
+    details: 'Robotics & Automation Society submitted reservation for Robotics & IoT Lab',
+    created_at: new Date(Date.now() - 1200000).toISOString(),
+  },
+  {
+    id: 'audit-log-3',
+    action: 'GRIEVANCE_REGISTERED',
+    resource: 'issues',
+    details: 'Encrypted grievance ticket ISSUE-84912 registered for Hostel Block C Wi-Fi',
+    created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+  },
+  {
+    id: 'audit-log-4',
+    action: 'ROLE_ASSIGNMENT',
+    resource: 'users',
+    details: 'Priya Verma (2401EC15) assigned Class Representative role',
+    created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+  },
+  {
+    id: 'audit-log-5',
+    action: 'DOMAIN_WHITELISTED',
+    resource: 'domains',
+    details: 'Primary institutional domain @iiitbh.ac.in verified active',
+    created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+  },
+  {
+    id: 'audit-log-6',
+    action: 'SECURITY_SCAN',
+    resource: 'system',
+    details: 'Intranet identity privacy audit: 100% compliant, all student aliases masked',
+    created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+  },
+  {
+    id: 'audit-log-7',
+    action: 'STUDY_MATERIAL_VERIFIED',
+    resource: 'materials',
+    details: 'Advanced DSA Comprehensive Notes approved by Academic Affairs Cell',
+    created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
+  },
+];
+
+// Initial Seed Student Grievances
+const DEFAULT_STUDENT_ISSUES = [
+  {
+    id: 'issue-seed-1',
+    tracking_id: 'ISSUE-84912',
+    category: 'hostel',
+    title: 'Wi-Fi & LAN Dead Zones in Hostel Block C, 3rd Floor',
+    description: 'Internet access points on the 3rd floor of Hostel C have been intermittently dropping out during peak study hours (8 PM - 12 AM). Multiple students preparing for online coding contests are affected.',
+    location: 'Hostel Block C, Wings 3A & 3B',
+    status: 'in_progress',
+    priority: 'high',
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+    messages: [
+      {
+        id: 'im-1',
+        sender_role: 'admin',
+        content: 'Our IT team has dispatched a technician to replace the network switch and reconfigure the AP antennas this afternoon.',
+        created_at: new Date(Date.now() - 86400000).toISOString(),
+      },
+    ],
+  },
+  {
+    id: 'issue-seed-2',
+    tracking_id: 'ISSUE-72045',
+    category: 'academics',
+    title: 'Request for Additional Reference Books in Central Library for VLSI',
+    description: 'The Central Library has only 2 copies of "CMOS VLSI Design" by Weste & Harris. Since 80 students are enrolled in this core elective, we request at least 5 additional copies or e-book access.',
+    location: 'Central Library, Reference Section',
+    status: 'under_review',
+    priority: 'medium',
+    created_at: new Date(Date.now() - 86400000 * 1.5).toISOString(),
+    messages: [
+      {
+        id: 'im-2',
+        sender_role: 'admin',
+        content: 'Forwarded to the Library Committee Chair for budget allocation.',
+        created_at: new Date(Date.now() - 43200000).toISOString(),
+      },
+    ],
+  },
+  {
+    id: 'issue-seed-3',
+    tracking_id: 'ISSUE-61389',
+    category: 'infrastructure',
+    title: 'Air Conditioning Maintenance in Computer Centre Lab 2',
+    description: 'AC units 3 and 4 in Computer Centre Lab 2 are making rattling noises and not cooling properly during lab sessions with 60 workstations running.',
+    location: 'Main Academic Block, 1st Floor',
+    status: 'submitted',
+    priority: 'medium',
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+    messages: [],
+  },
+  {
+    id: 'issue-seed-4',
+    tracking_id: 'ISSUE-55201',
+    category: 'mess',
+    title: 'Night Canteen Hygiene & Extended Operating Hours During Exams',
+    description: 'Requesting institute oversight for hygiene audits in the student mess and extending night canteen hours till 2:30 AM during the upcoming mid-semester examinations.',
+    location: 'Student Dining Hall & Canteen Complex',
+    status: 'under_review',
+    priority: 'low',
+    created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+    messages: [],
+  },
+  {
+    id: 'issue-seed-5',
+    tracking_id: 'ISSUE-49182',
+    category: 'sports',
+    title: 'Replacement of Badminton Court Floodlights at Sports Pavilion',
+    description: 'Two floodlight halogen bulbs on Court 2 are fused, creating dark spots during evening inter-batch badminton matches.',
+    location: 'Sports Pavilion & Indoor Badminton Complex',
+    status: 'resolved',
+    priority: 'low',
+    created_at: new Date(Date.now() - 86400000 * 4).toISOString(),
+    messages: [
+      {
+        id: 'im-5',
+        sender_role: 'admin',
+        content: 'Estate section has replaced all bulbs with high-efficiency LED sports floodlights. Tested and operational.',
+        created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+      },
+    ],
+  },
+];
+
+// Initial Seed Users for Admin
+const DEFAULT_ADMIN_USERS = [
+  DEMO_USERS.admin,
+  DEMO_USERS.student1,
+  DEMO_USERS.student2,
+  {
+    id: 'user-rohan-03',
+    email: 'rohan.2101cs45@iiitbh.ac.in',
+    full_name: 'Rohan Gupta',
+    roll_number: '2101CS45',
+    academic_year: '4th Year',
+    department: 'Computer Science and Engineering',
+    role: 'representative' as const,
+    is_verified: true,
+  },
+  {
+    id: 'user-sneha-04',
+    email: 'sneha.2401me08@iiitbh.ac.in',
+    full_name: 'Sneha Patel',
+    roll_number: '2401ME08',
+    academic_year: '2nd Year',
+    department: 'Mechatronics and Automation',
+    role: 'student' as const,
+    is_verified: true,
+  },
+  {
+    id: 'user-vikram-05',
+    email: 'vikram.2201cs19@iiitbh.ac.in',
+    full_name: 'Vikramaditya Singh',
+    roll_number: '2201CS19',
+    academic_year: '3rd Year',
+    department: 'Computer Science and Engineering',
+    role: 'student' as const,
+    is_verified: true,
+  },
+  {
+    id: 'user-ananya-06',
+    email: 'ananya.2301ec32@iiitbh.ac.in',
+    full_name: 'Ananya Sen',
+    roll_number: '2301EC32',
+    academic_year: '3rd Year',
+    department: 'Electronics and Communication',
+    role: 'student' as const,
+    is_verified: true,
+  },
+  {
+    id: 'user-aditya-07',
+    email: 'aditya.2201me14@iiitbh.ac.in',
+    full_name: 'Aditya Raj',
+    roll_number: '2201ME14',
+    academic_year: '3rd Year',
+    department: 'Mechatronics and Automation',
+    role: 'representative' as const,
+    is_verified: true,
+  },
+  {
+    id: 'user-neha-08',
+    email: 'neha.2501cs03@iiitbh.ac.in',
+    full_name: 'Neha Kumari',
+    roll_number: '2501CS03',
+    academic_year: '1st Year',
+    department: 'Computer Science and Engineering',
+    role: 'student' as const,
+    is_verified: true,
+  },
+  {
+    id: 'user-dean-09',
+    email: 'dean.academic@iiitbh.ac.in',
+    full_name: 'Prof. A. K. Choudhary',
+    roll_number: 'FAC-DEAN-02',
+    academic_year: 'Dean Academic',
+    department: 'Academic Affairs Council',
+    role: 'admin' as const,
+    is_verified: true,
+  },
+];
+
+// Initial Seed Flagged Moderation Reports
+const DEFAULT_REPORTS = [
+  {
+    id: 'rep-1',
+    target_type: 'Student Connect Discussion',
+    reason: 'Commercial promotional spam offering paid assignment solutions',
+    status: 'pending',
+    created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
+  },
+  {
+    id: 'rep-2',
+    target_type: 'Study Vault Upload',
+    reason: 'Unverified draft practical manual with erroneous formula citations',
+    status: 'pending',
+    created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
+  },
+];
+
+// All Campus Facilities for Comprehensive Slot Booking
+const ALL_CAMPUS_FACILITIES = [
+  { name: 'Computer Centre Lab 1 (High Performance Lab)', capacity: 60, notes: '60 High-end Linux workstations, Gigabit LAN, dual laser projectors' },
+  { name: 'Computer Centre Lab 2 (Software Development Lab)', capacity: 60, notes: 'Full stack development tools, IDEs, and local server clusters' },
+  { name: 'High Performance Computing & AI Cluster Lab', capacity: 35, notes: 'GPU computing nodes (NVIDIA A100), PyTorch, TensorFlow' },
+  { name: 'Robotics & IoT Innovation Lab', capacity: 40, notes: 'Testing arena, 3D printers, soldering benches, logic analyzers' },
+  { name: 'VLSI & Embedded Systems Design Lab', capacity: 30, notes: 'Cadence & Synopsys EDA suites, FPGA development boards' },
+  { name: 'Main Campus Auditorium', capacity: 500, notes: 'Acoustic stage sound, 4K digital screen, centralized climate control' },
+  { name: 'Seminar Hall 1 (Administrative Complex)', capacity: 150, notes: 'Tiered executive seating, video conferencing, audio recording' },
+  { name: 'Seminar Hall 2 (Academic Block)', capacity: 120, notes: 'Interactive smart podium, dual laser projection, air conditioned' },
+  { name: 'Music & Cultural Society Room (Tarang)', capacity: 30, notes: 'Acoustic soundproofing, drum kit, amplifiers, recording console' },
+  { name: 'Basketball & Volleyball Sports Court', capacity: 50, notes: 'All-weather synthetic floodlight court with digital scoreboard' },
+  { name: 'Badminton & Table Tennis Indoor Pavilion', capacity: 40, notes: '3 wooden badminton courts, 4 Stiga competition TT tables' },
+  { name: 'Sports Ground & Cricket Pavilion', capacity: 100, notes: 'Standard turf wicket, floodlights for approved evening matches' },
+  { name: 'Open Air Amphitheatre & Student Quadrangle', capacity: 350, notes: 'Open stone amphitheatre for student club rallies and fests' },
+  { name: 'Central Library Discussion & Study Vault Room', capacity: 25, notes: 'Whiteboards, high-speed Wi-Fi, peer study pods' },
+  { name: 'Conference Room A (Senate & Faculty Hall)', capacity: 45, notes: 'Formal conference microphone setup and presentation screen' },
+];
+
+// Dynamic Slot Generator
+function generateSlotsForCampus(dateFilter?: string, facilityFilter?: string) {
+  const times = [
+    { start: '09:00', end: '12:00' },
+    { start: '14:00', end: '17:00' },
+    { start: '17:30', end: '20:30' },
+  ];
+
+  // Base dates covering today and next 10 days
+  const dates: string[] = [];
+  const baseTime = Date.now();
+  for (let i = 0; i <= 10; i++) {
+    const d = new Date(baseTime + i * 86400000);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  // Ensure historical demo dates are also included
+  ['2026-11-11', '2026-11-12', '2026-11-13', '2026-11-14', '2026-11-15', '2026-11-16'].forEach((d) => {
+    if (!dates.includes(d)) dates.push(d);
+  });
+
+  const targetDates = dateFilter ? [dateFilter] : dates;
+  const targetFacilities =
+    facilityFilter && facilityFilter !== 'all'
+      ? ALL_CAMPUS_FACILITIES.filter((f) => f.name.toLowerCase().includes(facilityFilter.toLowerCase()) || facilityFilter.toLowerCase().includes(f.name.toLowerCase()))
+      : ALL_CAMPUS_FACILITIES;
+
+  const actualFacilities = targetFacilities.length > 0 ? targetFacilities : ALL_CAMPUS_FACILITIES;
+
+  let customBookings: any[] = [];
+  try {
+    customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
+  } catch {}
+  const approvedBookings = customBookings.filter((b: any) => b.status === 'approved');
+
+  const slots: any[] = [];
+  let counter = 1;
+
+  for (const d of targetDates) {
+    for (const fac of actualFacilities) {
+      for (const t of times) {
+        const slotId = `slot-${fac.name.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8)}-${d}-${t.start.replace(':', '')}`;
+        const isBooked = approvedBookings.some(
+          (b: any) =>
+            b.slot_id === slotId ||
+            (b.slot_date === d && b.facility_or_club === fac.name && b.start_time === t.start)
+        );
+
+        slots.push({
+          id: slotId,
+          facility_or_club: fac.name,
+          slot_date: d,
+          start_time: t.start,
+          end_time: t.end,
+          is_available: true,
+          max_capacity: fac.capacity,
+          notes: fac.notes,
+          is_booked: isBooked,
+        });
+        counter++;
+      }
+    }
+  }
+
+  return slots;
+}
+
 // Fallback Mock Engine for Vercel Preview Deployments (when remote backend is not running)
 function handleDemoFallback(config: any): any {
   const fullUrl = config.url || '';
@@ -72,6 +407,7 @@ function handleDemoFallback(config: any): any {
         localStorage.setItem('college_connect_token', 'demo-jwt-token-admin');
         localStorage.setItem('college_connect_user', JSON.stringify(user));
       } catch {}
+      addAuditLog('USER_LOGIN', 'auth', `Super Admin (${email}) signed in via intranet SSO`);
       return ok({ message: 'Login successful (Demo Mode)', token: 'demo-jwt-token-admin', user });
     }
 
@@ -91,6 +427,7 @@ function handleDemoFallback(config: any): any {
       localStorage.setItem('college_connect_user', JSON.stringify(studentUser));
     } catch {}
 
+    addAuditLog('USER_LOGIN', 'auth', `Student (${email}) signed in via institutional credentials`);
     return ok({ message: 'Login successful (Demo Mode)', token: 'demo-jwt-token-student', user: studentUser });
   }
 
@@ -103,6 +440,7 @@ function handleDemoFallback(config: any): any {
       return reject('Registration restricted to verified @iiitbh.ac.in or @college.edu addresses.', 400);
     }
 
+    addAuditLog('STUDENT_REGISTRATION', 'auth', `New registration initiated for ${email}`);
     return ok(
       {
         message: 'Account created! A verification code has been dispatched to your institutional inbox.',
@@ -115,6 +453,7 @@ function handleDemoFallback(config: any): any {
   // 3. VERIFY EMAIL (/auth/verify-email)
   if (urlPath.includes('/auth/verify-email') && method === 'post') {
     const user = DEMO_USERS.student1;
+    addAuditLog('EMAIL_VERIFIED', 'auth', `Account verified successfully for ${user.email}`);
     return ok({
       message: 'Email verified successfully. Welcome to IIIT Bhagalpur — Mitra!',
       token: 'demo-jwt-token-student',
@@ -184,19 +523,9 @@ function handleDemoFallback(config: any): any {
     return ok(allEvents);
   }
 
-  // 7. SLOTS (/bookings/slots)
+  // 7. SLOTS (/bookings/slots) — Abundant Campus Facilities & Dynamic Slot Generation
   if (urlPath.includes('/bookings/slots')) {
-    let customBookings: any[] = [];
-    try {
-      customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
-    } catch {}
-    const bookedSlotIds = new Set(customBookings.filter((b: any) => b.status === 'approved').map((b: any) => b.slot_id));
-
-    const slots = DEMO_SLOTS.map((s) => ({
-      ...s,
-      is_booked: s.is_booked || bookedSlotIds.has(s.id),
-    }));
-
+    const slots = generateSlotsForCampus(config.params?.date, config.params?.facility);
     return ok(slots);
   }
 
@@ -206,7 +535,15 @@ function handleDemoFallback(config: any): any {
     try {
       customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
     } catch {}
-    const slot = DEMO_SLOTS.find((s) => s.id === body.slot_id) || DEMO_SLOTS[0];
+
+    // Find slot details or fallback
+    const allGenSlots = generateSlotsForCampus();
+    const slot = allGenSlots.find((s) => s.id === body.slot_id) || {
+      facility_or_club: 'Main Campus Auditorium',
+      slot_date: new Date().toISOString().slice(0, 10),
+      start_time: '14:00',
+      end_time: '17:00',
+    };
 
     const newBooking = {
       id: 'demo-bkg-' + Date.now(),
@@ -228,6 +565,12 @@ function handleDemoFallback(config: any): any {
     try {
       localStorage.setItem('demo_user_bookings', JSON.stringify(customBookings));
     } catch {}
+
+    addAuditLog(
+      'SLOT_BOOKING_REQUESTED',
+      'bookings',
+      `Booking request submitted by ${newBooking.club_or_society} for ${newBooking.facility_or_club} (${newBooking.slot_date})`
+    );
 
     return ok(
       {
@@ -258,6 +601,7 @@ function handleDemoFallback(config: any): any {
       );
       localStorage.setItem('demo_user_bookings', JSON.stringify(customBookings));
     } catch {}
+    addAuditLog('BOOKING_CANCELLED', 'bookings', `Reservation request ${bookingId} cancelled by student`);
     return ok({ message: 'Booking reservation cancelled.' });
   }
 
@@ -265,39 +609,60 @@ function handleDemoFallback(config: any): any {
   if (urlPath.includes('/career-rooms')) {
     // 11a. Messages in a specific career room
     if (urlPath.includes('/messages')) {
+      const parts = urlPath.split('/');
+      const msgIdx = parts.indexOf('messages');
+      const roomId = msgIdx > 0 ? parts[msgIdx - 1] : 'room-placement-prep';
+
+      let roomMsgs: any[] = [];
+      try {
+        roomMsgs = JSON.parse(localStorage.getItem(`demo_career_msgs_${roomId}`) || '[]');
+      } catch {}
+
       if (method === 'post') {
         const newMsg = {
           id: 'msg-' + Date.now(),
           anonymous_alias: 'Blue Falcon #38',
-          content: body.content,
+          content: (body.content || '').trim(),
           created_at: new Date().toISOString(),
           is_self: true,
         };
+        roomMsgs.push(newMsg);
+        try {
+          localStorage.setItem(`demo_career_msgs_${roomId}`, JSON.stringify(roomMsgs));
+        } catch {}
+
+        addAuditLog('CAREER_ROOM_MESSAGE', 'career_rooms', `Anonymous message posted in ${roomId}`);
+
         return ok(
           {
-            message: newMsg,
+            message: 'Message sent successfully.',
+            data: newMsg,
+            remainingDailyMessages: 8,
             dailyUsage: { used: 2, limit: 10, remaining: 8 },
           },
           201
         );
       }
+
+      const seedMessages = [
+        {
+          id: 'msg-seed-1',
+          anonymous_alias: 'Blue Falcon #38',
+          content: 'Has anyone reviewed the latest Google OA dynamic programming problem?',
+          created_at: new Date(Date.now() - 3600000).toISOString(),
+          is_self: false,
+        },
+        {
+          id: 'msg-seed-2',
+          anonymous_alias: 'Silver Phoenix #14',
+          content: 'Yes! It was a variation of 2D grid DP with obstacle costs. Vetted notes are in the Study Vault.',
+          created_at: new Date(Date.now() - 1800000).toISOString(),
+          is_self: true,
+        },
+      ];
+
       return ok({
-        messages: [
-          {
-            id: 'msg-1',
-            anonymous_alias: 'Blue Falcon #38',
-            content: 'Has anyone reviewed the latest Google OA dynamic programming problem?',
-            created_at: new Date(Date.now() - 3600000).toISOString(),
-            is_self: false,
-          },
-          {
-            id: 'msg-2',
-            anonymous_alias: 'Silver Phoenix #14',
-            content: 'Yes! It was a variation of 2D grid DP with obstacle costs. Vetted notes are in the Study Vault.',
-            created_at: new Date(Date.now() - 1800000).toISOString(),
-            is_self: true,
-          },
-        ],
+        messages: [...seedMessages, ...roomMsgs],
         dailyUsage: { used: 1, limit: 10, remaining: 9 },
       });
     }
@@ -311,6 +676,7 @@ function handleDemoFallback(config: any): any {
         if (!joined.includes(roomId)) joined.push(roomId);
         localStorage.setItem('demo_joined_rooms', JSON.stringify(joined));
       } catch {}
+      addAuditLog('JOINED_CAREER_ROOM', 'career_rooms', `Student joined preparation track ${roomId}`);
       return ok({ message: 'Successfully joined career room.', roomId });
     }
 
@@ -323,6 +689,7 @@ function handleDemoFallback(config: any): any {
         joined = joined.filter((id) => id !== roomId);
         localStorage.setItem('demo_joined_rooms', JSON.stringify(joined));
       } catch {}
+      addAuditLog('LEFT_CAREER_ROOM', 'career_rooms', `Student left track ${roomId}`);
       return ok({ message: 'Successfully left career room.', roomId });
     }
 
@@ -346,7 +713,7 @@ function handleDemoFallback(config: any): any {
       });
     }
 
-    // 11e. All career rooms list (expected contract: { rooms, joinedCount, maxRoomsAllowed, canJoinMore, dailyUsage })
+    // 11e. All career rooms list
     let joined: string[] = ['room-placement-prep', 'room-software-dev'];
     try {
       joined = JSON.parse(localStorage.getItem('demo_joined_rooms') || JSON.stringify(joined));
@@ -449,6 +816,8 @@ function handleDemoFallback(config: any): any {
         } catch {}
       }
 
+      addAuditLog('STUDENT_CONNECT_POST', 'student_connect', `Anonymous post created under category: ${newPost.category}`);
+
       return ok(
         {
           message: 'Message posted successfully.',
@@ -485,63 +854,67 @@ function handleDemoFallback(config: any): any {
   // 14. STUDY MATERIALS (/materials)
   if (urlPath.includes('/materials')) {
     if (method === 'post') {
+      addAuditLog('STUDY_MATERIAL_UPLOADED', 'materials', 'New study document uploaded for verification');
       return ok({ message: 'Study material uploaded and pending faculty verification.' }, 201);
     }
     if (method === 'delete') {
+      addAuditLog('STUDY_MATERIAL_REMOVED', 'materials', 'Study material removed');
       return ok({ message: 'Material removed successfully.' });
     }
     return ok(DEMO_STUDY_MATERIALS);
   }
 
-  // 15. STUDENT ISSUES (/issues)
+  // 15. STUDENT ISSUES / GRIEVANCES (/issues)
   if (urlPath.includes('/issues')) {
+    let storedIssues: any[] = [];
+    try {
+      const stored = localStorage.getItem('demo_student_issues');
+      storedIssues = stored ? JSON.parse(stored) : DEFAULT_STUDENT_ISSUES;
+    } catch {
+      storedIssues = DEFAULT_STUDENT_ISSUES;
+    }
+
     if (urlPath.includes('/my-submissions')) {
       return ok({
-        issues: [
-          {
-            id: 'issue-demo-1',
-            tracking_id: 'ISSUE-49182',
-            category: 'hostel',
-            title: 'Wi-Fi connectivity in Hostel Block C',
-            status: 'in_progress',
-            priority: 'medium',
-            created_at: new Date(Date.now() - 86400000).toISOString(),
-            messages: [
-              {
-                id: 'im-1',
-                sender_role: 'admin',
-                content: 'Our IT team has been informed and will reset the access points this evening.',
-                created_at: new Date(Date.now() - 43200000).toISOString(),
-              },
-            ],
-          },
-        ],
+        issues: storedIssues,
         dailyUsage: { used: 0, limit: 2, remaining: 2 },
       });
     }
+
     if (urlPath.includes('/track/')) {
+      const parts = urlPath.split('/');
+      const identifier = parts[parts.length - 1];
+      const found =
+        storedIssues.find((i: any) => i.id === identifier || i.tracking_id === identifier) ||
+        storedIssues[0];
       return ok({
-        issue: {
-          id: 'issue-demo-1',
-          tracking_id: 'ISSUE-49182',
-          category: 'hostel',
-          title: 'Wi-Fi connectivity in Hostel Block C',
-          status: 'in_progress',
-          priority: 'medium',
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-        },
-        messages: [
-          {
-            id: 'im-1',
-            sender_role: 'admin',
-            content: 'Our IT team has been informed and will reset the access points this evening.',
-            created_at: new Date(Date.now() - 43200000).toISOString(),
-          },
-        ],
+        issue: found,
+        messages: found?.messages || [],
       });
     }
+
     if (method === 'post') {
       const trackingId = `ISSUE-${Math.floor(10000 + Math.random() * 90000)}`;
+      const newIssue = {
+        id: 'issue-' + Date.now(),
+        tracking_id: trackingId,
+        category: body.category || 'hostel',
+        title: body.title || 'Student Concern',
+        description: body.description || '',
+        location: body.location || '',
+        status: 'submitted',
+        priority: body.priority || 'medium',
+        created_at: new Date().toISOString(),
+        messages: [],
+      };
+
+      storedIssues.unshift(newIssue);
+      try {
+        localStorage.setItem('demo_student_issues', JSON.stringify(storedIssues));
+      } catch {}
+
+      addAuditLog('GRIEVANCE_REGISTERED', 'issues', `Encrypted ticket ${trackingId} submitted: ${newIssue.title}`);
+
       return ok(
         {
           message: 'Your concern has been registered anonymously and securely encrypted.',
@@ -561,86 +934,252 @@ function handleDemoFallback(config: any): any {
       if (cached) user = { ...JSON.parse(cached), ...body };
       localStorage.setItem('college_connect_user', JSON.stringify(user));
     } catch {}
+    addAuditLog('PROFILE_UPDATED', 'user', `Profile details updated for ${user.email}`);
     return ok({ message: 'Profile details updated.', user });
   }
 
   if (urlPath.includes('/user/change-password') && method === 'post') {
+    addAuditLog('PASSWORD_CHANGED', 'auth', 'Account password successfully updated');
     return ok({ message: 'Password has been updated successfully.' });
   }
 
-  // 17. ADMIN DASHBOARD & BOOKING APPROVALS (/admin)
+  // 17. ADMIN DASHBOARD, GOVERNANCE & AUDIT (/admin)
   if (urlPath.includes('/admin')) {
-    // Admin review of booking requests
-    if (urlPath.includes('/admin/bookings') && method === 'get') {
-      let customBookings: any[] = [];
-      try {
-        customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
-      } catch {}
-      const seedAdminBookings = [
-        {
-          id: 'demo-seed-bkg-1',
-          club_or_society: 'Robotics Society',
-          purpose: 'Autonomous Rover Testing',
-          description: 'Testing autonomous navigation sensors in the lab.',
-          facility_or_club: 'Robotics & IoT Innovation Lab',
-          slot_date: '2026-11-14',
-          start_time: '14:00',
-          end_time: '17:00',
-          student_name: 'Aarav Sharma',
-          student_email: 'student1@college.edu',
-          status: 'pending',
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-        },
-      ];
-      const combined = [...customBookings, ...seedAdminBookings];
-      return ok(combined);
+    // Audit logs from localStorage
+    let storedAuditLogs: any[] = [];
+    try {
+      const stored = localStorage.getItem('demo_audit_logs');
+      storedAuditLogs = stored ? JSON.parse(stored) : DEFAULT_AUDIT_LOGS;
+    } catch {
+      storedAuditLogs = DEFAULT_AUDIT_LOGS;
     }
 
-    // Admin approve / reject action
-    if (urlPath.includes('/admin/bookings/') && method === 'patch') {
-      const parts = urlPath.split('/');
-      const bookingId = parts[parts.length - 1];
-      try {
-        let customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
-        customBookings = customBookings.map((b: any) =>
-          b.id === bookingId ? { ...b, status: body.status || 'approved' } : b
-        );
-        localStorage.setItem('demo_user_bookings', JSON.stringify(customBookings));
-      } catch {}
-      return ok({ message: `Booking reservation request marked as ${body.status || 'approved'}. Calendar has been updated.` });
+    // Student issues from localStorage
+    let storedIssues: any[] = [];
+    try {
+      const stored = localStorage.getItem('demo_student_issues');
+      storedIssues = stored ? JSON.parse(stored) : DEFAULT_STUDENT_ISSUES;
+    } catch {
+      storedIssues = DEFAULT_STUDENT_ISSUES;
     }
 
-    if (urlPath.includes('/admin/domains')) {
-      return ok([
-        { id: 'dom-1', domain: 'iiitbh.ac.in', is_active: true, created_at: new Date().toISOString() },
-        { id: 'dom-2', domain: 'college.edu', is_active: true, created_at: new Date().toISOString() },
-      ]);
-    }
-
-    if (urlPath.includes('/admin/users')) {
-      return ok([DEMO_USERS.admin, DEMO_USERS.student1, DEMO_USERS.student2]);
-    }
-
-    if (urlPath.includes('/admin/issues')) {
-      return ok([]);
-    }
-
-    if (urlPath.includes('/admin/reports')) {
-      return ok([]);
-    }
-
-    if (urlPath.includes('/admin/audit-logs')) {
-      return ok([
-        { id: '1', action: 'USER_LOGIN', details: 'admin@iiitbh.ac.in', created_at: new Date().toISOString() },
-        { id: '2', action: 'BOOKING_REQUEST_RECEIVED', details: 'Robotics Society', created_at: new Date(Date.now() - 1200000).toISOString() },
-      ]);
-    }
-
+    // Bookings from localStorage
     let customBookings: any[] = [];
     try {
       customBookings = JSON.parse(localStorage.getItem('demo_user_bookings') || '[]');
     } catch {}
-    const pendingCount = customBookings.filter((b: any) => b.status === 'pending').length + 1;
+
+    const seedAdminBookings = [
+      {
+        id: 'demo-seed-bkg-1',
+        club_or_society: 'Robotics Society',
+        purpose: 'Autonomous Rover Testing',
+        description: 'Testing autonomous navigation sensors in the lab.',
+        facility_or_club: 'Robotics & IoT Innovation Lab',
+        slot_date: '2026-11-14',
+        start_time: '14:00',
+        end_time: '17:00',
+        student_name: 'Aarav Sharma',
+        student_email: 'student1@college.edu',
+        status: 'pending',
+        created_at: new Date(Date.now() - 3600000).toISOString(),
+      },
+      {
+        id: 'demo-seed-bkg-2',
+        club_or_society: 'Coding Club & GDSC',
+        purpose: 'National Hackathon Orientation',
+        description: 'Briefing participants on problem statements and compute server allocation.',
+        facility_or_club: 'Main Campus Auditorium',
+        slot_date: '2026-11-15',
+        start_time: '14:00',
+        end_time: '17:00',
+        student_name: 'Rohan Gupta',
+        student_email: 'rohan.2101cs45@iiitbh.ac.in',
+        status: 'pending',
+        created_at: new Date(Date.now() - 7200000).toISOString(),
+      },
+    ];
+    const allBookings = [...customBookings, ...seedAdminBookings];
+
+    // Reports from localStorage
+    let storedReports: any[] = [];
+    try {
+      const stored = localStorage.getItem('demo_reports');
+      storedReports = stored ? JSON.parse(stored) : DEFAULT_REPORTS;
+    } catch {
+      storedReports = DEFAULT_REPORTS;
+    }
+
+    // Users from localStorage
+    let storedUsers: any[] = [];
+    try {
+      const stored = localStorage.getItem('demo_admin_users');
+      storedUsers = stored ? JSON.parse(stored) : DEFAULT_ADMIN_USERS;
+    } catch {
+      storedUsers = DEFAULT_ADMIN_USERS;
+    }
+
+    // 17a. Admin Bookings Review
+    if (urlPath.includes('/admin/bookings') && method === 'get') {
+      const filter = config.params?.status;
+      if (filter && filter !== 'all') {
+        return ok(allBookings.filter((b: any) => b.status === filter));
+      }
+      return ok(allBookings);
+    }
+
+    // 17b. Admin Approve / Reject Booking
+    if (urlPath.includes('/admin/bookings/') && method === 'patch') {
+      const parts = urlPath.split('/');
+      const bookingId = parts[parts.length - 1];
+      const newStatus = body.status || 'approved';
+      const updated = allBookings.map((b: any) =>
+        b.id === bookingId ? { ...b, status: newStatus } : b
+      );
+      try {
+        localStorage.setItem('demo_user_bookings', JSON.stringify(updated));
+      } catch {}
+
+      addAuditLog(
+        newStatus === 'approved' ? 'BOOKING_APPROVED' : 'BOOKING_REJECTED',
+        'bookings',
+        `Reservation ${bookingId} was ${newStatus} by Administrator. Calendar synced.`
+      );
+
+      return ok({ message: `Booking reservation request marked as ${newStatus}. Calendar has been updated.` });
+    }
+
+    // 17c. Whitelisted Email Domains
+    if (urlPath.includes('/admin/domains')) {
+      let storedDomains = ['iiitbh.ac.in', 'college.edu'];
+      try {
+        const stored = localStorage.getItem('demo_whitelisted_domains');
+        if (stored) storedDomains = JSON.parse(stored);
+      } catch {}
+
+      if (method === 'post') {
+        const cleanDom = (body.domain || '').replace(/^@/, '').toLowerCase().trim();
+        if (cleanDom && !storedDomains.includes(cleanDom)) {
+          storedDomains.push(cleanDom);
+          try {
+            localStorage.setItem('demo_whitelisted_domains', JSON.stringify(storedDomains));
+          } catch {}
+          addAuditLog('DOMAIN_WHITELISTED', 'domains', `@${cleanDom} added to authorized email domains`);
+        }
+        return ok({ message: 'Domain whitelisted successfully.', domain: cleanDom }, 201);
+      }
+
+      if (method === 'delete') {
+        const parts = urlPath.split('/');
+        const idToDelete = parts[parts.length - 1];
+        storedDomains = storedDomains.filter((d) => d !== idToDelete && `dom-${d}` !== idToDelete);
+        try {
+          localStorage.setItem('demo_whitelisted_domains', JSON.stringify(storedDomains));
+        } catch {}
+        addAuditLog('DOMAIN_REVOKED', 'domains', `Email domain ${idToDelete} revoked from whitelist`);
+        return ok({ message: 'Domain revoked from whitelist.' });
+      }
+
+      const domainObjects = storedDomains.map((d, idx) => ({
+        id: `dom-${d}`,
+        domain: d,
+        is_active: true,
+        created_at: new Date(Date.now() - (idx + 1) * 86400000 * 30).toISOString(),
+      }));
+      return ok(domainObjects);
+    }
+
+    // 17d. Student Grievances in Admin
+    if (urlPath.includes('/admin/issues')) {
+      if (method === 'patch') {
+        const parts = urlPath.split('/');
+        // URL is /admin/issues/:id/status
+        const issueId = parts[parts.length - 2];
+        const updatedStatus = body.status || 'under_review';
+        const note = body.note;
+
+        storedIssues = storedIssues.map((iss: any) => {
+          if (iss.id === issueId) {
+            const msgs = iss.messages || [];
+            if (note) {
+              msgs.push({
+                id: 'im-' + Date.now(),
+                sender_role: 'admin',
+                content: note,
+                created_at: new Date().toISOString(),
+              });
+            }
+            return {
+              ...iss,
+              status: updatedStatus,
+              messages: msgs,
+            };
+          }
+          return iss;
+        });
+
+        try {
+          localStorage.setItem('demo_student_issues', JSON.stringify(storedIssues));
+        } catch {}
+
+        addAuditLog(
+          'GRIEVANCE_STATUS_UPDATED',
+          'issues',
+          `Ticket ${issueId} progression set to "${updatedStatus}". Administrator note attached.`
+        );
+
+        return ok({ message: 'Grievance lifecycle status updated.' });
+      }
+
+      const filter = config.params?.status;
+      if (filter && filter !== 'all') {
+        return ok(storedIssues.filter((i: any) => i.status === filter));
+      }
+      return ok(storedIssues);
+    }
+
+    // 17e. Student Accounts for Admin
+    if (urlPath.includes('/admin/users')) {
+      if (method === 'patch') {
+        const parts = urlPath.split('/');
+        const userId = parts[parts.length - 2];
+        const newRole = body.role || 'student';
+        storedUsers = storedUsers.map((u: any) => (u.id === userId ? { ...u, role: newRole } : u));
+        try {
+          localStorage.setItem('demo_admin_users', JSON.stringify(storedUsers));
+        } catch {}
+        addAuditLog('USER_ROLE_UPDATED', 'users', `User ${userId} permissions updated to ${newRole}`);
+        return ok({ message: 'Institutional role updated successfully.' });
+      }
+      return ok(storedUsers);
+    }
+
+    // 17f. Moderation Reports
+    if (urlPath.includes('/admin/reports')) {
+      if (method === 'post' && urlPath.endsWith('/resolve')) {
+        const parts = urlPath.split('/');
+        const reportId = parts[parts.length - 2];
+        storedReports = storedReports.map((r: any) =>
+          r.id === reportId ? { ...r, status: 'resolved', action_taken: body.action || 'dismiss' } : r
+        );
+        try {
+          localStorage.setItem('demo_reports', JSON.stringify(storedReports));
+        } catch {}
+        addAuditLog('MODERATION_RESOLVED', 'reports', `Moderation report ${reportId} resolved with action: ${body.action || 'dismiss'}`);
+        return ok({ message: 'Moderation item resolved.' });
+      }
+      return ok(storedReports);
+    }
+
+    // 17g. Security Audit Log Trail
+    if (urlPath.includes('/admin/audit-logs')) {
+      return ok(storedAuditLogs);
+    }
+
+    // 17h. Main Metrics Overview
+    const pendingBookingsCount = allBookings.filter((b: any) => b.status === 'pending').length;
+    const pendingIssuesCount = storedIssues.filter((i: any) => i.status !== 'resolved' && i.status !== 'closed').length;
+    const pendingReportsCount = storedReports.filter((r: any) => r.status === 'pending').length;
 
     return ok({
       metrics: {
@@ -648,15 +1187,12 @@ function handleDemoFallback(config: any): any {
         verifiedStudents: 846,
         activeRooms: 12,
         totalMaterials: 64,
-        upcomingEvents: 5,
-        pendingBookings: pendingCount,
-        pendingIssues: 5,
-        pendingReports: 0,
+        upcomingEvents: 8 + allBookings.filter((b: any) => b.status === 'approved').length,
+        pendingBookings: pendingBookingsCount,
+        pendingIssues: pendingIssuesCount,
+        pendingReports: pendingReportsCount,
       },
-      recentLogs: [
-        { id: '1', action: 'USER_LOGIN', details: 'admin@iiitbh.ac.in', created_at: new Date().toISOString() },
-        { id: '2', action: 'BOOKING_REQUEST_RECEIVED', details: 'Robotics Society', created_at: new Date(Date.now() - 1200000).toISOString() },
-      ],
+      recentLogs: storedAuditLogs.slice(0, 8),
     });
   }
 
