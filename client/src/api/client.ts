@@ -8,12 +8,20 @@ import {
   DEMO_STUDY_MATERIALS,
 } from './demoData';
 
-const getApiBaseUrl = () => {
+export const getApiBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
   if (envUrl) {
     return envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
   }
   return '/api';
+};
+
+export const getSocketUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+  if (envUrl) {
+    return envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
+  }
+  return '';
 };
 
 // Detect if running on a static hosting environment without a dedicated backend server
@@ -872,11 +880,6 @@ function handleDemoFallback(config: any): any {
     const currentUserId = currentUser?.id || DEMO_USERS.student1.id;
     const currentUsage = getDemoDailyUsage(currentUserId);
 
-    let customPosts: any[] = [];
-    try {
-      customPosts = JSON.parse(localStorage.getItem('demo_sc_posts') || '[]');
-    } catch {}
-
     const seedPosts = [
       {
         id: 'sc-seed-1',
@@ -913,7 +916,18 @@ function handleDemoFallback(config: any): any {
       },
     ];
 
-    const allPosts = [...customPosts, ...seedPosts];
+    let allPosts: any[] = [];
+    try {
+      const stored = localStorage.getItem('demo_sc_posts');
+      if (stored) {
+        allPosts = JSON.parse(stored);
+      } else {
+        allPosts = seedPosts;
+        localStorage.setItem('demo_sc_posts', JSON.stringify(seedPosts));
+      }
+    } catch {
+      allPosts = seedPosts;
+    }
 
     if (method === 'post') {
       const usage = incrementDemoDailyUsage(currentUserId, 'connect');
@@ -935,7 +949,7 @@ function handleDemoFallback(config: any): any {
       };
 
       if (isReply) {
-        const updated = allPosts.map((p) => {
+        allPosts = allPosts.map((p) => {
           if (p.id === body.parent_id) {
             return {
               ...p,
@@ -945,15 +959,12 @@ function handleDemoFallback(config: any): any {
           }
           return p;
         });
-        try {
-          localStorage.setItem('demo_sc_posts', JSON.stringify(updated.filter((p) => !p.id.startsWith('sc-seed-'))));
-        } catch {}
       } else {
-        customPosts.unshift(newPost);
-        try {
-          localStorage.setItem('demo_sc_posts', JSON.stringify(customPosts));
-        } catch {}
+        allPosts.unshift(newPost);
       }
+      try {
+        localStorage.setItem('demo_sc_posts', JSON.stringify(allPosts));
+      } catch {}
 
       addAuditLog('STUDENT_CONNECT_POST', 'student_connect', `Anonymous post created by ${alias} under category: ${newPost.category}`);
 

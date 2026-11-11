@@ -12,7 +12,7 @@ import {
   LogOut,
   GraduationCap,
 } from 'lucide-react';
-import api from '../api/client';
+import api, { getSocketUrl } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 export const CareerRoomDetailPage: React.FC = () => {
@@ -70,8 +70,17 @@ export const CareerRoomDetailPage: React.FC = () => {
     };
     window.addEventListener('storage', onStorage);
 
+    // Periodic polling to keep messages fresh across tabs / devices
+    const pollInterval = setInterval(() => {
+      fetchRoomAndMessages();
+    }, 4000);
+
+    const socketUrl = getSocketUrl();
     if (token) {
-      const socket = io({ auth: { token } });
+      const socket = io(socketUrl || undefined, {
+        auth: { token },
+        transports: ['websocket', 'polling'],
+      });
       socketRef.current = socket;
 
       socket.emit('join_career_room', id);
@@ -95,16 +104,15 @@ export const CareerRoomDetailPage: React.FC = () => {
           setTimeout(scrollToBottom, 50);
         }
       });
-
-      return () => {
-        window.removeEventListener('storage', onStorage);
-        socket.emit('leave_career_room', id);
-        socket.disconnect();
-      };
     }
 
     return () => {
+      clearInterval(pollInterval);
       window.removeEventListener('storage', onStorage);
+      if (socketRef.current) {
+        socketRef.current.emit('leave_career_room', id);
+        socketRef.current.disconnect();
+      }
     };
   }, [id, token, user?.id]);
 

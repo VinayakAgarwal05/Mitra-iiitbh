@@ -16,7 +16,7 @@ import {
   Tag,
   Share2,
 } from 'lucide-react';
-import api from '../api/client';
+import api, { getSocketUrl } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 export const StudentConnectPage: React.FC = () => {
@@ -76,7 +76,13 @@ export const StudentConnectPage: React.FC = () => {
     };
     window.addEventListener('storage', onStorage);
 
+    // Periodic polling to keep feed fresh
+    const pollInterval = setInterval(() => {
+      fetchFeed();
+    }, 5000);
+
     return () => {
+      clearInterval(pollInterval);
       window.removeEventListener('storage', onStorage);
     };
   }, [search, selectedCategory]);
@@ -84,8 +90,10 @@ export const StudentConnectPage: React.FC = () => {
   // Socket.IO real-time feed updates
   useEffect(() => {
     if (token) {
-      const socket = io({
+      const socketUrl = getSocketUrl();
+      const socket = io(socketUrl || undefined, {
         auth: { token },
+        transports: ['websocket', 'polling'],
       });
       socketRef.current = socket;
 
