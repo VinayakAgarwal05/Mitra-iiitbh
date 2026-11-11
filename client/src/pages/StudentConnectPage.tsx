@@ -52,12 +52,14 @@ export const StudentConnectPage: React.FC = () => {
       const res = await api.get('/student-connect/messages', {
         params: { search, category: selectedCategory },
       });
-      setPosts(res.data.posts);
-      if (res.data.dailyUsage) {
+      const postList = Array.isArray(res.data) ? res.data : (res.data?.posts || []);
+      setPosts(postList);
+      if (res.data?.dailyUsage) {
         setRemainingDailyMessages(res.data.dailyUsage.remaining);
       }
     } catch (err) {
       console.error(err);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -389,12 +391,12 @@ export const StudentConnectPage: React.FC = () => {
           <div className="p-8 text-center text-xs text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
             Loading discussions...
           </div>
-        ) : posts.length === 0 ? (
+        ) : (posts || []).length === 0 ? (
           <div className="p-8 text-center text-xs text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
             No active discussions found for the specified criteria.
           </div>
         ) : (
-          posts.map((post) => (
+          (posts || []).map((post) => (
             <article
               key={post.id}
               className="human-card p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-3 transition-colors hover:border-slate-300 dark:hover:border-slate-700"

@@ -263,81 +263,218 @@ function handleDemoFallback(config: any): any {
 
   // 11. CAREER ROOMS (/career-rooms)
   if (urlPath.includes('/career-rooms')) {
+    // 11a. Messages in a specific career room
     if (urlPath.includes('/messages')) {
       if (method === 'post') {
+        const newMsg = {
+          id: 'msg-' + Date.now(),
+          anonymous_alias: 'Blue Falcon #38',
+          content: body.content,
+          created_at: new Date().toISOString(),
+          is_self: true,
+        };
         return ok(
           {
-            id: 'msg-' + Date.now(),
-            alias: 'Blue Falcon #38',
-            content: body.content,
-            created_at: new Date().toISOString(),
+            message: newMsg,
+            dailyUsage: { used: 2, limit: 10, remaining: 8 },
           },
           201
         );
       }
-      return ok([
-        {
-          id: 'msg-1',
-          alias: 'Blue Falcon #38',
-          content: 'Has anyone reviewed the latest Google OA dynamic programming problem?',
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: 'msg-2',
-          alias: 'Silver Phoenix #14',
-          content: 'Yes! It was a variation of 2D grid DP with obstacle costs. Vetted notes are in the Study Vault.',
-          created_at: new Date(Date.now() - 1800000).toISOString(),
-        },
-      ]);
+      return ok({
+        messages: [
+          {
+            id: 'msg-1',
+            anonymous_alias: 'Blue Falcon #38',
+            content: 'Has anyone reviewed the latest Google OA dynamic programming problem?',
+            created_at: new Date(Date.now() - 3600000).toISOString(),
+            is_self: false,
+          },
+          {
+            id: 'msg-2',
+            anonymous_alias: 'Silver Phoenix #14',
+            content: 'Yes! It was a variation of 2D grid DP with obstacle costs. Vetted notes are in the Study Vault.',
+            created_at: new Date(Date.now() - 1800000).toISOString(),
+            is_self: true,
+          },
+        ],
+        dailyUsage: { used: 1, limit: 10, remaining: 9 },
+      });
     }
 
+    // 11b. Join career room
     if (urlPath.endsWith('/join') && method === 'post') {
-      return ok({ message: 'Successfully joined career room.' });
+      const parts = urlPath.split('/');
+      const roomId = parts[parts.length - 2];
+      try {
+        let joined: string[] = JSON.parse(localStorage.getItem('demo_joined_rooms') || '["room-placement-prep", "room-software-dev"]');
+        if (!joined.includes(roomId)) joined.push(roomId);
+        localStorage.setItem('demo_joined_rooms', JSON.stringify(joined));
+      } catch {}
+      return ok({ message: 'Successfully joined career room.', roomId });
     }
+
+    // 11c. Leave career room
     if (urlPath.endsWith('/leave') && method === 'delete') {
-      return ok({ message: 'Successfully left career room.' });
+      const parts = urlPath.split('/');
+      const roomId = parts[parts.length - 2];
+      try {
+        let joined: string[] = JSON.parse(localStorage.getItem('demo_joined_rooms') || '["room-placement-prep", "room-software-dev"]');
+        joined = joined.filter((id) => id !== roomId);
+        localStorage.setItem('demo_joined_rooms', JSON.stringify(joined));
+      } catch {}
+      return ok({ message: 'Successfully left career room.', roomId });
     }
 
-    const roomId = urlPath.split('/').pop();
-    const singleRoom = DEMO_CAREER_ROOMS.find((r) => r.id === roomId);
-    if (singleRoom) return ok(singleRoom);
+    // 11d. Single room detail
+    const pathSegments = urlPath.split('/').filter(Boolean);
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    if (lastSegment !== 'career-rooms') {
+      let joined: string[] = ['room-placement-prep', 'room-software-dev'];
+      try {
+        joined = JSON.parse(localStorage.getItem('demo_joined_rooms') || JSON.stringify(joined));
+      } catch {}
+      const singleRoom = DEMO_CAREER_ROOMS.find((r) => r.id === lastSegment) || DEMO_CAREER_ROOMS[0];
+      return ok({
+        room: {
+          ...singleRoom,
+          is_member: joined.includes(singleRoom.id),
+          member_count: 52,
+        },
+        userJoinedTotal: joined.length,
+        maxRoomsAllowed: 2,
+      });
+    }
 
-    return ok(DEMO_CAREER_ROOMS);
+    // 11e. All career rooms list (expected contract: { rooms, joinedCount, maxRoomsAllowed, canJoinMore, dailyUsage })
+    let joined: string[] = ['room-placement-prep', 'room-software-dev'];
+    try {
+      joined = JSON.parse(localStorage.getItem('demo_joined_rooms') || JSON.stringify(joined));
+    } catch {}
+
+    const enrichedRooms = DEMO_CAREER_ROOMS.map((r) => ({
+      ...r,
+      is_member: joined.includes(r.id),
+      member_count: joined.includes(r.id) ? (r.member_count || 48) : 48,
+    }));
+
+    return ok({
+      rooms: enrichedRooms,
+      joinedCount: joined.length,
+      maxRoomsAllowed: 2,
+      canJoinMore: joined.length < 2,
+      dailyUsage: { used: 1, limit: 10, remaining: 9 },
+    });
   }
 
   // 12. STUDENT CONNECT ANONYMOUS CHAT (/student-connect/messages)
   if (urlPath.includes('/student-connect/messages')) {
+    let customPosts: any[] = [];
+    try {
+      customPosts = JSON.parse(localStorage.getItem('demo_sc_posts') || '[]');
+    } catch {}
+
+    const seedPosts = [
+      {
+        id: 'sc-seed-1',
+        category: 'Academics & Notes',
+        anonymous_alias: 'Anonymous Student #19',
+        content: 'Does anyone have the past semester Digital Signal Processing question paper?',
+        tags: 'DSP,ECE,PYQ',
+        is_pinned: false,
+        created_at: new Date(Date.now() - 7200000).toISOString(),
+        is_self: false,
+        replies: [
+          {
+            id: 'sc-reply-1',
+            parent_id: 'sc-seed-1',
+            anonymous_alias: 'Anonymous Student #31',
+            content: 'Check the Study Vault under ECE resources! Uploaded yesterday by the club leads.',
+            created_at: new Date(Date.now() - 3600000).toISOString(),
+            is_self: false,
+          },
+        ],
+        replies_count: 1,
+      },
+      {
+        id: 'sc-seed-2',
+        category: 'Campus Facilities',
+        anonymous_alias: 'Anonymous Student #54',
+        content: 'Great initiative by the Robotics Society booking the lab slot on Saturday for rover testing!',
+        tags: 'Robotics,Lab',
+        is_pinned: false,
+        created_at: new Date(Date.now() - 14400000).toISOString(),
+        is_self: false,
+        replies: [],
+        replies_count: 0,
+      },
+    ];
+
+    const allPosts = [...customPosts, ...seedPosts];
+
     if (method === 'post') {
+      const isReply = !!body.parent_id;
+      const newPost = {
+        id: 'sc-msg-' + Date.now(),
+        parent_id: body.parent_id || null,
+        category: body.category || 'General Discussion',
+        anonymous_alias: 'Anonymous Student #42',
+        content: (body.content || '').trim(),
+        tags: body.tags || null,
+        is_pinned: false,
+        created_at: new Date().toISOString(),
+        is_self: true,
+        replies: [],
+        replies_count: 0,
+      };
+
+      if (isReply) {
+        const updated = allPosts.map((p) => {
+          if (p.id === body.parent_id) {
+            return {
+              ...p,
+              replies: [...(p.replies || []), newPost],
+              replies_count: (p.replies_count || 0) + 1,
+            };
+          }
+          return p;
+        });
+        try {
+          localStorage.setItem('demo_sc_posts', JSON.stringify(updated.filter((p) => !p.id.startsWith('sc-seed-'))));
+        } catch {}
+      } else {
+        customPosts.unshift(newPost);
+        try {
+          localStorage.setItem('demo_sc_posts', JSON.stringify(customPosts));
+        } catch {}
+      }
+
       return ok(
         {
-          id: 'sc-msg-' + Date.now(),
-          alias: 'Anonymous Student #42',
-          content: body.content,
-          department: 'Computer Science and Engineering',
-          academic_year: '3rd Year',
-          created_at: new Date().toISOString(),
+          message: 'Message posted successfully.',
+          post: newPost,
+          dailyUsage: { used: 1, limit: 10, remaining: 9 },
         },
         201
       );
     }
-    return ok([
-      {
-        id: 'sc-msg-1',
-        alias: 'Anonymous Student #19',
-        content: 'Does anyone have the past semester Digital Signal Processing question paper?',
-        department: 'Electronics and Communication',
-        academic_year: '2nd Year',
-        created_at: new Date(Date.now() - 7200000).toISOString(),
-      },
-      {
-        id: 'sc-msg-2',
-        alias: 'Anonymous Student #31',
-        content: 'Check the Study Vault under ECE resources! Uploaded yesterday by the club leads.',
-        department: 'Electronics and Communication',
-        academic_year: '3rd Year',
-        created_at: new Date(Date.now() - 3600000).toISOString(),
-      },
-    ]);
+
+    // Filter by category or search if provided
+    let filtered = allPosts;
+    if (config.params?.category && config.params.category !== 'all') {
+      filtered = filtered.filter((p) => p.category === config.params.category);
+    }
+    if (config.params?.search) {
+      const q = config.params.search.toLowerCase();
+      filtered = filtered.filter(
+        (p) => (p.content || '').toLowerCase().includes(q) || (p.tags || '').toLowerCase().includes(q)
+      );
+    }
+
+    return ok({
+      posts: filtered,
+      dailyUsage: { used: 0, limit: 10, remaining: 10 },
+    });
   }
 
   // 13. CONTACTS (/contacts)
@@ -359,8 +496,32 @@ function handleDemoFallback(config: any): any {
   // 15. STUDENT ISSUES (/issues)
   if (urlPath.includes('/issues')) {
     if (urlPath.includes('/my-submissions')) {
-      return ok([
-        {
+      return ok({
+        issues: [
+          {
+            id: 'issue-demo-1',
+            tracking_id: 'ISSUE-49182',
+            category: 'hostel',
+            title: 'Wi-Fi connectivity in Hostel Block C',
+            status: 'in_progress',
+            priority: 'medium',
+            created_at: new Date(Date.now() - 86400000).toISOString(),
+            messages: [
+              {
+                id: 'im-1',
+                sender_role: 'admin',
+                content: 'Our IT team has been informed and will reset the access points this evening.',
+                created_at: new Date(Date.now() - 43200000).toISOString(),
+              },
+            ],
+          },
+        ],
+        dailyUsage: { used: 0, limit: 2, remaining: 2 },
+      });
+    }
+    if (urlPath.includes('/track/')) {
+      return ok({
+        issue: {
           id: 'issue-demo-1',
           tracking_id: 'ISSUE-49182',
           category: 'hostel',
@@ -368,27 +529,15 @@ function handleDemoFallback(config: any): any {
           status: 'in_progress',
           priority: 'medium',
           created_at: new Date(Date.now() - 86400000).toISOString(),
-          messages: [
-            {
-              id: 'im-1',
-              sender_role: 'admin',
-              content: 'Our IT team has been informed and will reset the access points this evening.',
-              created_at: new Date(Date.now() - 43200000).toISOString(),
-            },
-          ],
         },
-      ]);
-    }
-    if (urlPath.includes('/track/')) {
-      return ok({
-        id: 'issue-demo-1',
-        tracking_id: 'ISSUE-49182',
-        category: 'hostel',
-        title: 'Wi-Fi connectivity in Hostel Block C',
-        status: 'in_progress',
-        priority: 'medium',
-        created_at: new Date(Date.now() - 86400000).toISOString(),
-        messages: [],
+        messages: [
+          {
+            id: 'im-1',
+            sender_role: 'admin',
+            content: 'Our IT team has been informed and will reset the access points this evening.',
+            created_at: new Date(Date.now() - 43200000).toISOString(),
+          },
+        ],
       });
     }
     if (method === 'post') {
@@ -462,7 +611,10 @@ function handleDemoFallback(config: any): any {
     }
 
     if (urlPath.includes('/admin/domains')) {
-      return ok(['iiitbh.ac.in', 'college.edu']);
+      return ok([
+        { id: 'dom-1', domain: 'iiitbh.ac.in', is_active: true, created_at: new Date().toISOString() },
+        { id: 'dom-2', domain: 'college.edu', is_active: true, created_at: new Date().toISOString() },
+      ]);
     }
 
     if (urlPath.includes('/admin/users')) {
@@ -491,13 +643,17 @@ function handleDemoFallback(config: any): any {
     const pendingCount = customBookings.filter((b: any) => b.status === 'pending').length + 1;
 
     return ok({
-      totalStudents: 852,
-      verifiedStudents: 846,
-      activeCareerRooms: 12,
-      pendingBookings: pendingCount,
-      openIssues: 5,
-      totalMaterials: 64,
-      recentAudits: [
+      metrics: {
+        totalStudents: 852,
+        verifiedStudents: 846,
+        activeRooms: 12,
+        totalMaterials: 64,
+        upcomingEvents: 5,
+        pendingBookings: pendingCount,
+        pendingIssues: 5,
+        pendingReports: 0,
+      },
+      recentLogs: [
         { id: '1', action: 'USER_LOGIN', details: 'admin@iiitbh.ac.in', created_at: new Date().toISOString() },
         { id: '2', action: 'BOOKING_REQUEST_RECEIVED', details: 'Robotics Society', created_at: new Date(Date.now() - 1200000).toISOString() },
       ],

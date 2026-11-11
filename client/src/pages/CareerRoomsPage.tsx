@@ -28,11 +28,13 @@ export const CareerRoomsPage: React.FC = () => {
   const fetchRooms = async () => {
     try {
       const res = await api.get('/career-rooms');
-      setRooms(res.data.rooms);
-      setJoinedCount(res.data.joinedCount);
-      setMaxRoomsAllowed(res.data.maxRoomsAllowed);
+      const roomList = Array.isArray(res.data) ? res.data : (res.data?.rooms || []);
+      setRooms(roomList);
+      setJoinedCount(res.data?.joinedCount ?? roomList.filter((r: any) => r.is_member).length);
+      setMaxRoomsAllowed(res.data?.maxRoomsAllowed ?? 2);
     } catch (err) {
       console.error(err);
+      setRooms([]);
     } finally {
       setLoading(false);
     }
@@ -69,12 +71,13 @@ export const CareerRoomsPage: React.FC = () => {
     }
   };
 
-  const categories = ['all', ...Array.from(new Set(rooms.map((r) => r.category)))];
+  const safeRooms = Array.isArray(rooms) ? rooms : [];
+  const categories = ['all', ...Array.from(new Set(safeRooms.map((r) => r.category).filter(Boolean)))];
 
-  const filteredRooms = rooms.filter((room) => {
+  const filteredRooms = safeRooms.filter((room) => {
     const matchesSearch =
-      room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      room.description.toLowerCase().includes(searchTerm.toLowerCase());
+      (room.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (room.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCat = selectedCategory === 'all' || room.category === selectedCategory;
     return matchesSearch && matchesCat;
   });
