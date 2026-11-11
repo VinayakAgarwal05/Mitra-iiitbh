@@ -6,15 +6,28 @@ import { ENV } from './env';
 let dbConfig: Knex.Config;
 
 if (ENV.DATABASE_CLIENT === 'pg') {
+  const needsSsl =
+    Boolean(ENV.DATABASE_URL) &&
+    (ENV.DATABASE_URL.includes('sslmode=') ||
+      ENV.DATABASE_URL.includes('.render.com') ||
+      ENV.DATABASE_URL.includes('neon.tech') ||
+      ENV.DATABASE_URL.includes('supabase.co') ||
+      ENV.NODE_ENV === 'production');
+
   dbConfig = {
     client: 'pg',
-    connection: ENV.DATABASE_URL || {
-      host: process.env.PGHOST || '127.0.0.1',
-      port: parseInt(process.env.PGPORT || '5432', 10),
-      user: process.env.PGUSER || 'postgres',
-      password: process.env.PGPASSWORD || 'postgres',
-      database: process.env.PGDATABASE || 'college_connect',
-    },
+    connection: ENV.DATABASE_URL
+      ? {
+          connectionString: ENV.DATABASE_URL,
+          ssl: needsSsl ? { rejectUnauthorized: false } : false,
+        }
+      : {
+          host: process.env.PGHOST || '127.0.0.1',
+          port: parseInt(process.env.PGPORT || '5432', 10),
+          user: process.env.PGUSER || 'postgres',
+          password: process.env.PGPASSWORD || 'postgres',
+          database: process.env.PGDATABASE || 'college_connect',
+        },
     pool: { min: 2, max: 10 },
   };
 } else {
