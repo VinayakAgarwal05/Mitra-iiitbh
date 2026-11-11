@@ -24,19 +24,9 @@ export const getSocketUrl = (): string => {
   return '';
 };
 
-// Detect if running on a static hosting environment without a dedicated backend server
-const isStaticPreview =
-  !import.meta.env.VITE_API_BASE_URL &&
-  !import.meta.env.VITE_API_URL &&
-  typeof window !== 'undefined' &&
-  (
-    window.location.hostname.includes('vercel.app') ||
-    window.location.hostname.includes('netlify.app') ||
-    window.location.hostname.includes('github.io') ||
-    window.location.hostname.includes('onrender.com') ||
-    window.location.hostname.includes('surge.sh') ||
-    window.location.search.includes('demo=true')
-  );
+// Detect if running with explicit demo mode requested via ?demo=true query param
+const isExplicitDemo =
+  typeof window !== 'undefined' && window.location.search.includes('demo=true');
 
 // Security & Administrative Audit Logging Helper
 function addAuditLog(action: string, resource: string, details: string) {
@@ -1375,29 +1365,42 @@ const defaultAdapter = axios.getAdapter(axios.defaults.adapter);
 
 export const api = axios.create({
   baseURL: getApiBaseUrl(),
-  timeout: 4000,
+  timeout: 8000,
   headers: {
     'Content-Type': 'application/json',
   },
   adapter: async (config) => {
-    // If on static preview or ?demo=true, respond instantly (<10ms) without network round-trip
-    if (isStaticPreview) {
+    // 1. If explicit ?demo=true query param is present
+    if (isExplicitDemo) {
       const demoRes = handleDemoFallback(config);
       if (demoRes) return demoRes;
     }
 
     try {
+      // 2. Always attempt the live backend server first
       const res = await defaultAdapter(config);
-      // If a static host rewrites API calls to index.html (returns HTML instead of JSON):
+      // If a static host rewrote API calls to index.html (returns HTML instead of JSON):
       if (typeof res.data === 'string' && (res.data.includes('<!DOCTYPE') || res.data.includes('<html'))) {
         const fallback = handleDemoFallback(config);
         if (fallback) return fallback;
       }
       return res;
     } catch (err: any) {
-      // If backend is unreachable, offline, or returns 404/405/500:
-      const fallback = handleDemoFallback(config);
-      if (fallback) return fallback;
+      // 3. Only fall back to local demo mode if backend is unreachable / offline
+      const status = err.response?.status;
+      const isUnreachable =
+        err.code === 'ERR_NETWORK' ||
+        err.code === 'ECONNABORTED' ||
+        !err.response ||
+        status === 404 ||
+        status === 502 ||
+        status === 503 ||
+        status === 504;
+
+      if (isUnreachable) {
+        const fallback = handleDemoFallback(config);
+        if (fallback) return fallback;
+      }
       throw err;
     }
   },

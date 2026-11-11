@@ -287,7 +287,7 @@ export const LoginPage: React.FC = () => {
               <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 text-center">
                 1-Click Evaluation Accounts
               </p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => fillQuickAccount('student1@college.edu', 'Student@123')}
@@ -295,9 +295,21 @@ export const LoginPage: React.FC = () => {
                 >
                   <div className="font-semibold text-xs flex items-center gap-1 text-slate-900 dark:text-white">
                     <CheckCircle2 className="w-3 h-3 text-brand-600" />
-                    <span>Student #1</span>
+                    <span>Student 1</span>
                   </div>
-                  <div className="text-[10px] text-slate-500 truncate font-mono">student1@college.edu</div>
+                  <div className="text-[10px] text-slate-500 truncate font-mono">student1</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => fillQuickAccount('student2@college.edu', 'Student@123')}
+                  className="btn-tactile p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 hover:border-brand-500 text-left transition-colors"
+                >
+                  <div className="font-semibold text-xs flex items-center gap-1 text-slate-900 dark:text-white">
+                    <CheckCircle2 className="w-3 h-3 text-brand-600" />
+                    <span>Student 2</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 truncate font-mono">student2</div>
                 </button>
 
                 <button
@@ -307,9 +319,9 @@ export const LoginPage: React.FC = () => {
                 >
                   <div className="font-semibold text-xs flex items-center gap-1 text-slate-900 dark:text-white">
                     <Shield className="w-3 h-3 text-slate-700 dark:text-slate-300" />
-                    <span>Super Admin</span>
+                    <span>Admin</span>
                   </div>
-                  <div className="text-[10px] text-slate-500 truncate font-mono">admin@iiitbh.ac.in</div>
+                  <div className="text-[10px] text-slate-500 truncate font-mono">admin</div>
                 </button>
               </div>
             </div>
