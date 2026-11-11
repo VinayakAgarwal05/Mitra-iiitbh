@@ -62,6 +62,14 @@ export const CareerRoomDetailPage: React.FC = () => {
 
     fetchRoomAndMessages();
 
+    // Cross-tab real-time sync for demo/preview environments
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === `demo_career_msgs_${id}` || e.key?.startsWith('demo_usage_')) {
+        fetchRoomAndMessages();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
     if (token) {
       const socket = io({ auth: { token } });
       socketRef.current = socket;
@@ -76,6 +84,7 @@ export const CareerRoomDetailPage: React.FC = () => {
               ...prev,
               {
                 id: msg.id,
+                user_id: msg.sender_id,
                 anonymous_alias: msg.anonymous_alias,
                 content: msg.content,
                 created_at: msg.created_at,
@@ -88,10 +97,15 @@ export const CareerRoomDetailPage: React.FC = () => {
       });
 
       return () => {
+        window.removeEventListener('storage', onStorage);
         socket.emit('leave_career_room', id);
         socket.disconnect();
       };
     }
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+    };
   }, [id, token, user?.id]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -113,7 +127,10 @@ export const CareerRoomDetailPage: React.FC = () => {
 
       const newMsg = res.data?.data || res.data?.message || res.data;
       if (newMsg && (newMsg.content || newMsg.id)) {
-        setMessages((prev) => [...(Array.isArray(prev) ? prev : []), newMsg]);
+        setMessages((prev) => [
+          ...(Array.isArray(prev) ? prev : []),
+          { ...newMsg, user_id: user?.id, is_self: true },
+        ]);
       }
       setInputContent('');
       if (typeof res.data?.remainingDailyMessages === 'number') {
@@ -204,31 +221,34 @@ export const CareerRoomDetailPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          (messages || []).map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex flex-col ${msg.is_self ? 'items-end' : 'items-start'}`}
-            >
-              <div className="flex items-center gap-1.5 mb-1 text-[11px] text-slate-400 font-mono">
-                <span className={`font-semibold ${msg.is_self ? 'text-blue-900 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}>
-                  {msg.is_self ? `You (${msg.anonymous_alias})` : msg.anonymous_alias}
-                </span>
-                <span>•</span>
-                <span>
-                  {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
+          (messages || []).map((msg) => {
+            const isMe = Boolean(user?.id && msg.user_id ? msg.user_id === user.id : msg.is_self);
+            return (
               <div
-                className={`max-w-md rounded-lg px-3.5 py-2 text-xs leading-relaxed ${
-                  msg.is_self
-                    ? 'bg-blue-900 text-white rounded-tr-none shadow-xs'
-                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-none border border-slate-200 dark:border-slate-700 shadow-xs'
-                }`}
+                key={msg.id}
+                className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
               >
-                {msg.content}
+                <div className="flex items-center gap-1.5 mb-1 text-[11px] text-slate-400 font-mono">
+                  <span className={`font-semibold ${isMe ? 'text-blue-900 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                    {isMe ? `You (${msg.anonymous_alias})` : msg.anonymous_alias}
+                  </span>
+                  <span>•</span>
+                  <span>
+                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <div
+                  className={`max-w-md rounded-lg px-3.5 py-2 text-xs leading-relaxed ${
+                    isMe
+                      ? 'bg-blue-900 text-white rounded-tr-none shadow-xs'
+                      : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-none border border-slate-200 dark:border-slate-700 shadow-xs'
+                  }`}
+                >
+                  {msg.content}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
         <div ref={chatBottomRef} />
       </div>

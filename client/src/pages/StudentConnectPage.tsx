@@ -67,6 +67,18 @@ export const StudentConnectPage: React.FC = () => {
 
   useEffect(() => {
     fetchFeed();
+
+    // Cross-tab real-time sync for demo/preview environments
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'demo_sc_posts' || e.key?.startsWith('demo_usage_')) {
+        fetchFeed();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+    };
   }, [search, selectedCategory]);
 
   // Socket.IO real-time feed updates
@@ -133,10 +145,18 @@ export const StudentConnectPage: React.FC = () => {
         tags: newTags,
       });
 
-      setPosts((prev) => [res.data.post, ...prev]);
+      const incomingPost = res.data.post || res.data.data;
+      if (incomingPost) {
+        setPosts((prev) => [{ ...incomingPost, user_id: user?.id, is_self: true }, ...prev]);
+      }
       setNewContent('');
       setNewTags('');
-      setRemainingDailyMessages(res.data.remainingDailyMessages);
+      const rem = typeof res.data.remainingDailyMessages === 'number'
+        ? res.data.remainingDailyMessages
+        : res.data.dailyUsage?.remaining;
+      if (typeof rem === 'number') {
+        setRemainingDailyMessages(rem);
+      }
       await refreshUser();
       setNotification({ type: 'success', message: 'Discussion thread initiated successfully.' });
     } catch (err: any) {
@@ -169,12 +189,13 @@ export const StudentConnectPage: React.FC = () => {
         parent_id: parentId,
       });
 
+      const incomingReply = res.data.post || res.data.data;
       setPosts((prev) =>
         prev.map((p) => {
           if (p.id === parentId) {
             return {
               ...p,
-              replies: [...(p.replies || []), res.data.post],
+              replies: [...(p.replies || []), incomingReply ? { ...incomingReply, user_id: user?.id, is_self: true } : incomingReply],
               replies_count: (p.replies_count || 0) + 1,
             };
           }
@@ -184,7 +205,12 @@ export const StudentConnectPage: React.FC = () => {
 
       setReplyContent('');
       setReplyParentId(null);
-      setRemainingDailyMessages(res.data.remainingDailyMessages);
+      const rem = typeof res.data.remainingDailyMessages === 'number'
+        ? res.data.remainingDailyMessages
+        : res.data.dailyUsage?.remaining;
+      if (typeof rem === 'number') {
+        setRemainingDailyMessages(rem);
+      }
       await refreshUser();
     } catch (err: any) {
       setNotification({
@@ -396,87 +422,92 @@ export const StudentConnectPage: React.FC = () => {
             No active discussions found for the specified criteria.
           </div>
         ) : (
-          (posts || []).map((post) => (
-            <article
-              key={post.id}
-              className="human-card p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-3 transition-colors hover:border-slate-300 dark:hover:border-slate-700"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center text-[10px] uppercase font-mono">
-                    #
-                  </div>
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {post.is_self ? `${post.anonymous_alias} (You)` : post.anonymous_alias}
-                  </span>
-                  <span className="text-slate-300 dark:text-slate-700">•</span>
-                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200 dark:border-slate-700">
-                    {post.category}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3 text-slate-400 text-xs">
-                  <span className="font-mono text-[11px]">
-                    {new Date(post.created_at).toLocaleDateString(undefined, {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                  <button
-                    onClick={() => setReportTargetId(post.id)}
-                    title="Report violation to administration"
-                    className="hover:text-rose-600 transition-colors p-1"
-                  >
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Body */}
-              <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line font-sans">
-                {post.content}
-              </p>
-
-              {/* Tags */}
-              {post.tags && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {post.tags.split(',').map((t: string) => (
-                    <span
-                      key={t}
-                      className="text-[10px] px-2 py-0.5 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 font-mono border border-slate-200 dark:border-slate-700"
-                    >
-                      #{t.trim()}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Replies Container */}
-              {post.replies && post.replies.length > 0 && (
-                <div className="mt-3 pl-4 border-l-2 border-brand-200 dark:border-brand-900 space-y-2.5 pt-1">
-                  {post.replies.map((reply: any) => (
-                    <div
-                      key={reply.id}
-                      className="p-3 rounded-md bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs space-y-1"
-                    >
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-semibold text-slate-900 dark:text-white">
-                          {reply.is_self ? `${reply.anonymous_alias} (You)` : reply.anonymous_alias}
-                        </span>
-                        <span className="text-slate-400 font-mono text-[10px]">
-                          {new Date(reply.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{reply.content}</p>
+          (posts || []).map((post) => {
+            const isMyPost = Boolean(user?.id && post.user_id ? post.user_id === user.id : post.is_self);
+            return (
+              <article
+                key={post.id}
+                className="human-card p-5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-3 transition-colors hover:border-slate-300 dark:hover:border-slate-700"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="w-6 h-6 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center text-[10px] uppercase font-mono">
+                      #
                     </div>
-                  ))}
-                </div>
-              )}
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {isMyPost ? `${post.anonymous_alias} (You)` : post.anonymous_alias}
+                    </span>
+                    <span className="text-slate-300 dark:text-slate-700">•</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-medium border border-slate-200 dark:border-slate-700">
+                      {post.category}
+                    </span>
+                  </div>
 
-              {/* Reply Form or Trigger */}
+                  <div className="flex items-center gap-3 text-slate-400 text-xs">
+                    <span className="font-mono text-[11px]">
+                      {new Date(post.created_at).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                    <button
+                      onClick={() => setReportTargetId(post.id)}
+                      title="Report violation to administration"
+                      className="hover:text-rose-600 transition-colors p-1"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Body */}
+                <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line font-sans">
+                  {post.content}
+                </p>
+
+                {/* Tags */}
+                {post.tags && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {post.tags.split(',').map((t: string) => (
+                      <span
+                        key={t}
+                        className="text-[10px] px-2 py-0.5 rounded bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 font-mono border border-slate-200 dark:border-slate-700"
+                      >
+                        #{t.trim()}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Replies Container */}
+                {post.replies && post.replies.length > 0 && (
+                  <div className="mt-3 pl-4 border-l-2 border-brand-200 dark:border-brand-900 space-y-2.5 pt-1">
+                    {post.replies.map((reply: any) => {
+                      const isMyReply = Boolean(user?.id && reply.user_id ? reply.user_id === user.id : reply.is_self);
+                      return (
+                        <div
+                          key={reply.id}
+                          className="p-3 rounded-md bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs space-y-1"
+                        >
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-semibold text-slate-900 dark:text-white">
+                              {isMyReply ? `${reply.anonymous_alias} (You)` : reply.anonymous_alias}
+                            </span>
+                            <span className="text-slate-400 font-mono text-[10px]">
+                              {new Date(reply.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{reply.content}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Reply Form or Trigger */}
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 {replyParentId === post.id ? (
                   <div className="w-full space-y-2 mt-2">
@@ -514,8 +545,9 @@ export const StudentConnectPage: React.FC = () => {
                 )}
               </div>
             </article>
-          ))
-        )}
+          );
+        })
+      )}
       </div>
 
       {/* Report Modal */}

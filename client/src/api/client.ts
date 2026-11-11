@@ -365,6 +365,112 @@ function generateSlotsForCampus(dateFilter?: string, facilityFilter?: string) {
   return slots;
 }
 
+// Retrieve current logged in demo user
+function getCurrentDemoUser(): any {
+  try {
+    const cached = localStorage.getItem('college_connect_user');
+    if (cached && cached !== 'undefined' && cached !== 'null') {
+      const u = JSON.parse(cached);
+      if (u && u.id) return u;
+    }
+  } catch {}
+  return DEMO_USERS.student1;
+}
+
+// Deterministic Anonymous Alias generator per user and context (room / category)
+const ALIAS_ADJECTIVES = [
+  'Crimson', 'Azure', 'Golden', 'Emerald', 'Silver', 'Shadow',
+  'Solar', 'Cosmic', 'Silent', 'Apex', 'Night', 'Iron',
+  'Echo', 'Vortex', 'Mystic', 'Quantum', 'Obsidian', 'Hyper'
+];
+const ALIAS_NOUNS = [
+  'Falcon', 'Phoenix', 'Wolf', 'Hawk', 'Tiger', 'Viper',
+  'Eagle', 'Panda', 'Otter', 'Lynx', 'Raven', 'Fox',
+  'Dragon', 'Cobra', 'Jaguar', 'Bear', 'Stag', 'Titan'
+];
+
+function getDemoAnonymousAlias(userId: string, contextId?: string): string {
+  if (userId === DEMO_USERS.admin.id || userId.includes('admin')) {
+    return 'Campus Administrator';
+  }
+  const str = `${userId}:${contextId || 'general'}`;
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  const posHash = Math.abs(hash);
+  const adj = ALIAS_ADJECTIVES[posHash % ALIAS_ADJECTIVES.length];
+  const noun = ALIAS_NOUNS[(posHash >> 4) % ALIAS_NOUNS.length];
+  const num = (posHash % 89) + 10;
+  return `${adj} ${noun} #${num}`;
+}
+
+function getDemoStudentConnectAlias(userId: string): string {
+  if (userId === DEMO_USERS.admin.id || userId.includes('admin')) {
+    return 'Campus Administrator';
+  }
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = (hash << 5) - hash + userId.charCodeAt(i);
+    hash |= 0;
+  }
+  const num = (Math.abs(hash) % 90) + 10;
+  return `Anonymous Student #${num}`;
+}
+
+// Persistent daily usage per user
+interface DemoDailyUsage {
+  date: string;
+  careerRoom: { used: number; limit: number; remaining: number };
+  studentConnect: { used: number; limit: number; remaining: number };
+  studentIssue: { used: number; limit: number; remaining: number };
+}
+
+function getDemoDailyUsage(userId: string): DemoDailyUsage {
+  const today = new Date().toISOString().slice(0, 10);
+  const key = `demo_usage_${userId}_${today}`;
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.date === today && parsed.careerRoom) {
+        return parsed;
+      }
+    }
+  } catch {}
+
+  const defaultUsage: DemoDailyUsage = {
+    date: today,
+    careerRoom: { used: 0, limit: 10, remaining: 10 },
+    studentConnect: { used: 0, limit: 10, remaining: 10 },
+    studentIssue: { used: 0, limit: 2, remaining: 2 },
+  };
+  try {
+    localStorage.setItem(key, JSON.stringify(defaultUsage));
+  } catch {}
+  return defaultUsage;
+}
+
+function incrementDemoDailyUsage(userId: string, type: 'career' | 'connect' | 'issue'): DemoDailyUsage {
+  const usage = getDemoDailyUsage(userId);
+  if (type === 'career') {
+    usage.careerRoom.used = Math.min(usage.careerRoom.limit, usage.careerRoom.used + 1);
+    usage.careerRoom.remaining = Math.max(0, usage.careerRoom.limit - usage.careerRoom.used);
+  } else if (type === 'connect') {
+    usage.studentConnect.used = Math.min(usage.studentConnect.limit, usage.studentConnect.used + 1);
+    usage.studentConnect.remaining = Math.max(0, usage.studentConnect.limit - usage.studentConnect.used);
+  } else if (type === 'issue') {
+    usage.studentIssue.used = Math.min(usage.studentIssue.limit, usage.studentIssue.used + 1);
+    usage.studentIssue.remaining = Math.max(0, usage.studentIssue.limit - usage.studentIssue.used);
+  }
+  const key = `demo_usage_${userId}_${usage.date}`;
+  try {
+    localStorage.setItem(key, JSON.stringify(usage));
+  } catch {}
+  return usage;
+}
+
 // Fallback Mock Engine for Vercel Preview Deployments (when remote backend is not running)
 function handleDemoFallback(config: any): any {
   const fullUrl = config.url || '';
@@ -411,16 +517,20 @@ function handleDemoFallback(config: any): any {
       return ok({ message: 'Login successful (Demo Mode)', token: 'demo-jwt-token-admin', user });
     }
 
-    const studentUser = {
-      id: 'student-demo-' + Math.floor(Math.random() * 1000),
-      email,
-      full_name: email.includes('student2') ? 'Priya Verma' : 'Aarav Sharma',
-      roll_number: email.includes('student2') ? '2401EC15' : '2301CS01',
-      academic_year: '3rd Year',
-      department: 'Computer Science and Engineering',
-      role: 'student' as const,
-      is_verified: true,
-    };
+    const studentUser = email.includes('student2')
+      ? DEMO_USERS.student2
+      : email.includes('student1')
+      ? DEMO_USERS.student1
+      : {
+          id: 'student-' + email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '_'),
+          email,
+          full_name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+          roll_number: '2301CS99',
+          academic_year: '3rd Year',
+          department: 'Computer Science and Engineering',
+          role: 'student' as const,
+          is_verified: true,
+        };
 
     try {
       localStorage.setItem('college_connect_token', 'demo-jwt-token-student');
@@ -468,23 +578,20 @@ function handleDemoFallback(config: any): any {
 
   // 5. CURRENT USER PROFILE (/auth/me)
   if (urlPath.includes('/auth/me')) {
-    let user = DEMO_USERS.student1;
+    const user = getCurrentDemoUser();
+    const usage = getDemoDailyUsage(user.id);
+
+    let joined: string[] = ['room-placement-prep', 'room-software-dev'];
     try {
-      const cached = localStorage.getItem('college_connect_user');
-      if (cached && cached !== 'undefined' && cached !== 'null') {
-        user = JSON.parse(cached);
-      }
+      joined = JSON.parse(localStorage.getItem('demo_joined_rooms') || JSON.stringify(joined));
     } catch {}
+
+    const joinedRoomsList = DEMO_CAREER_ROOMS.filter((r) => joined.includes(r.id));
 
     return ok({
       user,
-      dailyUsage: {
-        date: new Date().toISOString().slice(0, 10),
-        careerRoom: { used: 1, limit: 10, remaining: 9 },
-        studentConnect: { used: 0, limit: 10, remaining: 10 },
-        studentIssue: { used: 0, limit: 2, remaining: 2 },
-      },
-      joinedRooms: [DEMO_CAREER_ROOMS[0], DEMO_CAREER_ROOMS[1]],
+      dailyUsage: usage,
+      joinedRooms: joinedRoomsList,
     });
   }
 
@@ -545,6 +652,8 @@ function handleDemoFallback(config: any): any {
       end_time: '17:00',
     };
 
+    const currentUser = getCurrentDemoUser();
+
     const newBooking = {
       id: 'demo-bkg-' + Date.now(),
       slot_id: body.slot_id,
@@ -555,8 +664,8 @@ function handleDemoFallback(config: any): any {
       slot_date: slot.slot_date,
       start_time: slot.start_time,
       end_time: slot.end_time,
-      student_name: 'Aarav Sharma',
-      student_email: 'student1@college.edu',
+      student_name: currentUser?.full_name || 'Aarav Sharma',
+      student_email: currentUser?.email || 'student1@college.edu',
       status: 'pending', // Submits request to admin for review
       created_at: new Date().toISOString(),
     };
@@ -607,6 +716,10 @@ function handleDemoFallback(config: any): any {
 
   // 11. CAREER ROOMS (/career-rooms)
   if (urlPath.includes('/career-rooms')) {
+    const currentUser = getCurrentDemoUser();
+    const currentUserId = currentUser?.id || DEMO_USERS.student1.id;
+    const currentUsage = getDemoDailyUsage(currentUserId);
+
     // 11a. Messages in a specific career room
     if (urlPath.includes('/messages')) {
       const parts = urlPath.split('/');
@@ -619,26 +732,33 @@ function handleDemoFallback(config: any): any {
       } catch {}
 
       if (method === 'post') {
+        const usage = incrementDemoDailyUsage(currentUserId, 'career');
+        const alias = getDemoAnonymousAlias(currentUserId, roomId);
+
         const newMsg = {
           id: 'msg-' + Date.now(),
-          anonymous_alias: 'Blue Falcon #38',
+          user_id: currentUserId,
+          anonymous_alias: alias,
           content: (body.content || '').trim(),
           created_at: new Date().toISOString(),
-          is_self: true,
         };
+
         roomMsgs.push(newMsg);
         try {
           localStorage.setItem(`demo_career_msgs_${roomId}`, JSON.stringify(roomMsgs));
         } catch {}
 
-        addAuditLog('CAREER_ROOM_MESSAGE', 'career_rooms', `Anonymous message posted in ${roomId}`);
+        addAuditLog('CAREER_ROOM_MESSAGE', 'career_rooms', `Anonymous message posted in ${roomId} by ${alias}`);
 
         return ok(
           {
             message: 'Message sent successfully.',
-            data: newMsg,
-            remainingDailyMessages: 8,
-            dailyUsage: { used: 2, limit: 10, remaining: 8 },
+            data: {
+              ...newMsg,
+              is_self: true,
+            },
+            remainingDailyMessages: usage.careerRoom.remaining,
+            dailyUsage: usage.careerRoom,
           },
           201
         );
@@ -647,23 +767,34 @@ function handleDemoFallback(config: any): any {
       const seedMessages = [
         {
           id: 'msg-seed-1',
-          anonymous_alias: 'Blue Falcon #38',
+          user_id: 'seed-user-1',
+          anonymous_alias: 'Solar Hawk #42',
           content: 'Has anyone reviewed the latest Google OA dynamic programming problem?',
           created_at: new Date(Date.now() - 3600000).toISOString(),
-          is_self: false,
         },
         {
           id: 'msg-seed-2',
+          user_id: 'seed-user-2',
           anonymous_alias: 'Silver Phoenix #14',
           content: 'Yes! It was a variation of 2D grid DP with obstacle costs. Vetted notes are in the Study Vault.',
           created_at: new Date(Date.now() - 1800000).toISOString(),
-          is_self: true,
         },
       ];
 
+      const allMessages = [...seedMessages, ...roomMsgs];
+      const safeMessages = allMessages.map((m) => ({
+        id: m.id,
+        user_id: m.user_id,
+        anonymous_alias: m.anonymous_alias,
+        content: m.content,
+        created_at: m.created_at,
+        is_self: Boolean(currentUserId && m.user_id && m.user_id === currentUserId),
+      }));
+
       return ok({
-        messages: [...seedMessages, ...roomMsgs],
-        dailyUsage: { used: 1, limit: 10, remaining: 9 },
+        messages: safeMessages,
+        dailyUsage: currentUsage.careerRoom,
+        remainingDailyMessages: currentUsage.careerRoom.remaining,
       });
     }
 
@@ -710,6 +841,7 @@ function handleDemoFallback(config: any): any {
         },
         userJoinedTotal: joined.length,
         maxRoomsAllowed: 2,
+        dailyUsage: currentUsage.careerRoom,
       });
     }
 
@@ -730,12 +862,16 @@ function handleDemoFallback(config: any): any {
       joinedCount: joined.length,
       maxRoomsAllowed: 2,
       canJoinMore: joined.length < 2,
-      dailyUsage: { used: 1, limit: 10, remaining: 9 },
+      dailyUsage: currentUsage.careerRoom,
     });
   }
 
   // 12. STUDENT CONNECT ANONYMOUS CHAT (/student-connect/messages)
   if (urlPath.includes('/student-connect/messages')) {
+    const currentUser = getCurrentDemoUser();
+    const currentUserId = currentUser?.id || DEMO_USERS.student1.id;
+    const currentUsage = getDemoDailyUsage(currentUserId);
+
     let customPosts: any[] = [];
     try {
       customPosts = JSON.parse(localStorage.getItem('demo_sc_posts') || '[]');
@@ -745,20 +881,20 @@ function handleDemoFallback(config: any): any {
       {
         id: 'sc-seed-1',
         category: 'Academics & Notes',
+        user_id: 'seed-sc-user-1',
         anonymous_alias: 'Anonymous Student #19',
         content: 'Does anyone have the past semester Digital Signal Processing question paper?',
         tags: 'DSP,ECE,PYQ',
         is_pinned: false,
         created_at: new Date(Date.now() - 7200000).toISOString(),
-        is_self: false,
         replies: [
           {
             id: 'sc-reply-1',
             parent_id: 'sc-seed-1',
+            user_id: 'seed-sc-user-2',
             anonymous_alias: 'Anonymous Student #31',
             content: 'Check the Study Vault under ECE resources! Uploaded yesterday by the club leads.',
             created_at: new Date(Date.now() - 3600000).toISOString(),
-            is_self: false,
           },
         ],
         replies_count: 1,
@@ -766,12 +902,12 @@ function handleDemoFallback(config: any): any {
       {
         id: 'sc-seed-2',
         category: 'Campus Facilities',
+        user_id: 'seed-sc-user-3',
         anonymous_alias: 'Anonymous Student #54',
         content: 'Great initiative by the Robotics Society booking the lab slot on Saturday for rover testing!',
         tags: 'Robotics,Lab',
         is_pinned: false,
         created_at: new Date(Date.now() - 14400000).toISOString(),
-        is_self: false,
         replies: [],
         replies_count: 0,
       },
@@ -780,17 +916,20 @@ function handleDemoFallback(config: any): any {
     const allPosts = [...customPosts, ...seedPosts];
 
     if (method === 'post') {
+      const usage = incrementDemoDailyUsage(currentUserId, 'connect');
+      const alias = getDemoStudentConnectAlias(currentUserId);
       const isReply = !!body.parent_id;
+
       const newPost = {
         id: 'sc-msg-' + Date.now(),
         parent_id: body.parent_id || null,
         category: body.category || 'General Discussion',
-        anonymous_alias: 'Anonymous Student #42',
+        user_id: currentUserId,
+        anonymous_alias: alias,
         content: (body.content || '').trim(),
         tags: body.tags || null,
         is_pinned: false,
         created_at: new Date().toISOString(),
-        is_self: true,
         replies: [],
         replies_count: 0,
       };
@@ -816,13 +955,17 @@ function handleDemoFallback(config: any): any {
         } catch {}
       }
 
-      addAuditLog('STUDENT_CONNECT_POST', 'student_connect', `Anonymous post created under category: ${newPost.category}`);
+      addAuditLog('STUDENT_CONNECT_POST', 'student_connect', `Anonymous post created by ${alias} under category: ${newPost.category}`);
 
       return ok(
         {
           message: 'Message posted successfully.',
-          post: newPost,
-          dailyUsage: { used: 1, limit: 10, remaining: 9 },
+          post: {
+            ...newPost,
+            is_self: true,
+          },
+          remainingDailyMessages: usage.studentConnect.remaining,
+          dailyUsage: usage.studentConnect,
         },
         201
       );
@@ -840,9 +983,19 @@ function handleDemoFallback(config: any): any {
       );
     }
 
+    const mappedPosts = filtered.map((p) => ({
+      ...p,
+      is_self: Boolean(currentUserId && p.user_id && p.user_id === currentUserId),
+      replies: (p.replies || []).map((r: any) => ({
+        ...r,
+        is_self: Boolean(currentUserId && r.user_id && r.user_id === currentUserId),
+      })),
+    }));
+
     return ok({
-      posts: filtered,
-      dailyUsage: { used: 0, limit: 10, remaining: 10 },
+      posts: mappedPosts,
+      dailyUsage: currentUsage.studentConnect,
+      remainingDailyMessages: currentUsage.studentConnect.remaining,
     });
   }
 
@@ -866,6 +1019,10 @@ function handleDemoFallback(config: any): any {
 
   // 15. STUDENT ISSUES / GRIEVANCES (/issues)
   if (urlPath.includes('/issues')) {
+    const currentUser = getCurrentDemoUser();
+    const currentUserId = currentUser?.id || DEMO_USERS.student1.id;
+    const currentUsage = getDemoDailyUsage(currentUserId);
+
     let storedIssues: any[] = [];
     try {
       const stored = localStorage.getItem('demo_student_issues');
@@ -877,7 +1034,8 @@ function handleDemoFallback(config: any): any {
     if (urlPath.includes('/my-submissions')) {
       return ok({
         issues: storedIssues,
-        dailyUsage: { used: 0, limit: 2, remaining: 2 },
+        dailyUsage: currentUsage.studentIssue,
+        remainingDailySubmissions: currentUsage.studentIssue.remaining,
       });
     }
 
@@ -894,10 +1052,12 @@ function handleDemoFallback(config: any): any {
     }
 
     if (method === 'post') {
+      const usage = incrementDemoDailyUsage(currentUserId, 'issue');
       const trackingId = `ISSUE-${Math.floor(10000 + Math.random() * 90000)}`;
       const newIssue = {
         id: 'issue-' + Date.now(),
         tracking_id: trackingId,
+        user_id: currentUserId,
         category: body.category || 'hostel',
         title: body.title || 'Student Concern',
         description: body.description || '',
@@ -919,7 +1079,8 @@ function handleDemoFallback(config: any): any {
         {
           message: 'Your concern has been registered anonymously and securely encrypted.',
           trackingId,
-          remainingSubmissionsToday: 1,
+          remainingSubmissionsToday: usage.studentIssue.remaining,
+          dailyUsage: usage.studentIssue,
         },
         201
       );
@@ -928,7 +1089,7 @@ function handleDemoFallback(config: any): any {
 
   // 16. USER PROFILE & SETTINGS
   if (urlPath.includes('/user/profile') && (method === 'put' || method === 'patch')) {
-    let user = DEMO_USERS.student1;
+    let user = getCurrentDemoUser();
     try {
       const cached = localStorage.getItem('college_connect_user');
       if (cached) user = { ...JSON.parse(cached), ...body };
