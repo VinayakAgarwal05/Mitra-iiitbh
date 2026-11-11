@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../config/database';
 import { initializeSchema } from './schema';
+import adhyayeMaterials from './adhyayeMaterials.json';
+import adhyayeMentors from './adhyayeMentors.json';
 
 export async function seedDatabase() {
   await initializeSchema();
@@ -282,6 +284,30 @@ export async function seedDatabase() {
     }
   }
 
+  // Seed verified senior peer mentors from ADHYAAY directory
+  const existingContactIds = new Set((await db('contacts').select('id')).map((r: any) => r.id));
+  const mentorsToInsert = adhyayeMentors
+    .filter((m: any) => !existingContactIds.has(m.id))
+    .map((m: any) => ({
+      id: m.id,
+      category: m.category,
+      name: m.name,
+      designation: m.designation,
+      department_or_hostel: m.department_or_hostel,
+      contact_number: m.contact_number,
+      email: m.email,
+      availability: m.availability,
+      linkedin: m.linkedin,
+      is_authorized: true,
+      created_at: new Date(),
+      updated_at: new Date(),
+    }));
+
+  if (mentorsToInsert.length > 0) {
+    console.log(`Seeding ${mentorsToInsert.length} senior peer mentors from verified academic directory...`);
+    await db.batchInsert('contacts', mentorsToInsert, 50);
+  }
+
   // 5. Seed Events
   const eventsCount = await db('events').count('id as count').first();
   if (parseInt((eventsCount as any)?.count || '0', 10) === 0) {
@@ -426,9 +452,10 @@ export async function seedDatabase() {
 
   // 7. Seed Sample Study Material
   const materialCount = await db('study_materials').count('id as count').first();
+  const adminUser = await db('users').where({ role: 'super_admin' }).first();
+
   if (parseInt((materialCount as any)?.count || '0', 10) === 0) {
     console.log('Seeding sample study resources...');
-    const adminUser = await db('users').where({ role: 'super_admin' }).first();
     if (adminUser) {
       await db('study_materials').insert([
         {
@@ -489,6 +516,37 @@ export async function seedDatabase() {
           created_at: new Date(),
         },
       ]);
+    }
+  }
+
+  // Seed verified ADHYAAY curriculum vault materials (PYQs, Notes, Syllabus)
+  if (adminUser) {
+    const existingMaterialIds = new Set((await db('study_materials').select('id')).map((r: any) => r.id));
+    const materialsToInsert = adhyayeMaterials
+      .filter((m: any) => !existingMaterialIds.has(m.id))
+      .map((m: any) => ({
+        id: m.id,
+        title: m.title,
+        subject: m.subject,
+        department: m.department,
+        academic_year: m.academic_year,
+        semester: m.semester,
+        category: m.category,
+        description: m.description,
+        tags: m.tags,
+        file_path: m.file_path,
+        original_filename: m.original_filename,
+        file_size: m.file_size,
+        file_type: m.file_type,
+        uploader_id: adminUser.id,
+        downloads_count: m.downloads_count || 0,
+        is_flagged: false,
+        created_at: new Date(m.created_at || Date.now()),
+      }));
+
+    if (materialsToInsert.length > 0) {
+      console.log(`Seeding ${materialsToInsert.length} curriculum materials from ADHYAAY academic vault...`);
+      await db.batchInsert('study_materials', materialsToInsert, 50);
     }
   }
 

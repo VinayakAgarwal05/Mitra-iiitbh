@@ -215,7 +215,7 @@ export const SlotBookingPage: React.FC = () => {
                 : 'text-slate-600 dark:text-slate-400'
             }`}
           >
-            My Requests ({myBookings.length})
+            My Requests ({(myBookings || []).length})
           </button>
         </div>
       </div>
@@ -276,7 +276,7 @@ export const SlotBookingPage: React.FC = () => {
 
           {/* Slots Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {slots.map((slot) => (
+            {(slots || []).map((slot) => (
               <div
                 key={slot.id}
                 className={`human-card p-4 rounded-xl border transition-all flex flex-col justify-between ${
@@ -336,7 +336,7 @@ export const SlotBookingPage: React.FC = () => {
       ) : (
         /* My Bookings History Tab */
         <div className="space-y-3">
-          {myBookings.length === 0 ? (
+          {(myBookings || []).length === 0 ? (
             <div className="text-center py-12 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 text-slate-400">
               <History className="w-8 h-8 mx-auto mb-2 text-slate-400" />
               <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -347,7 +347,7 @@ export const SlotBookingPage: React.FC = () => {
               </p>
             </div>
           ) : (
-            myBookings.map((b) => (
+            (myBookings || []).map((b) => (
               <div
                 key={b.id}
                 className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"

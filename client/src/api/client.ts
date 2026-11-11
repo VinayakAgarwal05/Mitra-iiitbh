@@ -1065,7 +1065,20 @@ function handleDemoFallback(config: any): any {
 
   // 13. CONTACTS (/contacts)
   if (urlPath.includes('/contacts')) {
-    return ok(DEMO_CONTACTS);
+    let filtered = DEMO_CONTACTS;
+    if (config.params?.category && config.params.category !== 'all') {
+      filtered = filtered.filter((c) => c.category === config.params.category);
+    }
+    if (config.params?.search) {
+      const q = config.params.search.toLowerCase();
+      filtered = filtered.filter((c) =>
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.designation || '').toLowerCase().includes(q) ||
+        (c.department_or_hostel || '').toLowerCase().includes(q) ||
+        (c.availability || '').toLowerCase().includes(q)
+      );
+    }
+    return ok(filtered);
   }
 
   // 14. STUDY MATERIALS (/materials)
@@ -1078,7 +1091,34 @@ function handleDemoFallback(config: any): any {
       addAuditLog('STUDY_MATERIAL_REMOVED', 'materials', 'Study material removed');
       return ok({ message: 'Material removed successfully.' });
     }
-    return ok(DEMO_STUDY_MATERIALS);
+
+    let filtered = DEMO_STUDY_MATERIALS;
+    if (config.params?.semester && config.params.semester !== 'all') {
+      filtered = filtered.filter((m) => m.semester === config.params.semester);
+    }
+    if (config.params?.department && config.params.department !== 'all') {
+      const targetDept = config.params.department.toLowerCase();
+      filtered = filtered.filter((m) => {
+        const d = (m.department || '').toLowerCase();
+        return d.includes(targetDept) || targetDept.includes(d);
+      });
+    }
+    if (config.params?.category && config.params.category !== 'all') {
+      filtered = filtered.filter((m) => m.category === config.params.category);
+    }
+    if (config.params?.search) {
+      const q = config.params.search.toLowerCase();
+      filtered = filtered.filter(
+        (m) =>
+          (m.title || '').toLowerCase().includes(q) ||
+          (m.subject || '').toLowerCase().includes(q) ||
+          (m.tags && m.tags.toLowerCase().includes(q))
+      );
+    }
+    if (config.params?.sort === 'downloads') {
+      filtered = [...filtered].sort((a, b) => b.downloads_count - a.downloads_count);
+    }
+    return ok(filtered);
   }
 
   // 15. STUDENT ISSUES / GRIEVANCES (/issues)

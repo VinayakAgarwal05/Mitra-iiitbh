@@ -11,6 +11,7 @@ import {
   CheckCircle,
   AlertCircle,
   X,
+  ExternalLink,
 } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -57,9 +58,10 @@ export const StudyMaterialsPage: React.FC = () => {
           sort: sortBy,
         },
       });
-      setMaterials(res.data);
+      setMaterials(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setMaterials([]);
     } finally {
       setLoading(false);
     }
@@ -238,10 +240,10 @@ export const StudyMaterialsPage: React.FC = () => {
             className="px-2.5 py-1.5 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200"
           >
             <option value="all">All Departments</option>
-            <option value="Computer Science and Engineering">CSE</option>
-            <option value="Electronics and Communication">ECE</option>
-            <option value="Data Science & Artificial Intelligence">DSAI</option>
-            <option value="Mechatronics & Automation">Mechatronics</option>
+            <option value="Computer Science and Engineering">CSE (Computer Science)</option>
+            <option value="Electronics and Communication Engineering">ECE (Electronics & Comm.)</option>
+            <option value="Mechatronics and Automation Engineering">MAE (Mechatronics)</option>
+            <option value="Mathematics and Computing">MNC (Maths & Computing)</option>
           </select>
 
           <select
@@ -257,7 +259,7 @@ export const StudyMaterialsPage: React.FC = () => {
 
       {/* Materials Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {materials.length === 0 ? (
+        {(materials || []).length === 0 ? (
           <div className="col-span-full text-center py-12 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 text-slate-400">
             <BookOpen className="w-8 h-8 mx-auto mb-2 text-slate-400" />
             <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -268,7 +270,7 @@ export const StudyMaterialsPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          materials.map((mat) => (
+          (materials || []).map((mat) => (
             <div
               key={mat.id}
               className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-all"
@@ -320,13 +322,25 @@ export const StudyMaterialsPage: React.FC = () => {
 
               {/* Actions */}
               <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                <a
-                  href={`/api/materials/${mat.id}/download`}
-                  className="flex-1 py-1.5 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-colors"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download Document</span>
-                </a>
+                {mat.file_path && (mat.file_path.startsWith('http://') || mat.file_path.startsWith('https://')) ? (
+                  <a
+                    href={mat.file_path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-1.5 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Open Drive Vault</span>
+                  </a>
+                ) : (
+                  <a
+                    href={`/api/materials/${mat.id}/download`}
+                    className="flex-1 py-1.5 px-3 rounded-lg bg-blue-900 hover:bg-blue-800 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Document</span>
+                  </a>
+                )}
 
                 <button
                   onClick={() => setReportTargetId(mat.id)}

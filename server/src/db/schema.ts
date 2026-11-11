@@ -149,9 +149,16 @@ export async function initializeSchema() {
       table.string('contact_number').nullable();
       table.string('email').nullable();
       table.string('availability').nullable();
+      table.string('linkedin').nullable();
       table.boolean('is_authorized').defaultTo(true);
       table.timestamps(true, true);
     });
+  } else {
+    if (!(await db.schema.hasColumn('contacts', 'linkedin'))) {
+      await db.schema.alterTable('contacts', (table) => {
+        table.string('linkedin').nullable();
+      });
+    }
   }
 
   // 10. booking_slots

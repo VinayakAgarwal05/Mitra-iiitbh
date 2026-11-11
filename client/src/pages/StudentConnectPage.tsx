@@ -155,9 +155,9 @@ export const StudentConnectPage: React.FC = () => {
         tags: newTags,
       });
 
-      const incomingPost = res.data.post || res.data.data;
+      const incomingPost = res.data?.post || res.data?.data;
       if (incomingPost) {
-        setPosts((prev) => [{ ...incomingPost, user_id: user?.id, is_self: true }, ...prev]);
+        setPosts((prev) => [{ ...incomingPost, user_id: user?.id, is_self: true }, ...(Array.isArray(prev) ? prev : [])]);
       }
       setNewContent('');
       setNewTags('');
@@ -199,13 +199,14 @@ export const StudentConnectPage: React.FC = () => {
         parent_id: parentId,
       });
 
-      const incomingReply = res.data.post || res.data.data;
+      const incomingReply = res.data?.post || res.data?.data;
       setPosts((prev) =>
-        prev.map((p) => {
+        (Array.isArray(prev) ? prev : []).map((p) => {
           if (p.id === parentId) {
+            const currentReplies = Array.isArray(p.replies) ? p.replies : [];
             return {
               ...p,
-              replies: [...(p.replies || []), incomingReply ? { ...incomingReply, user_id: user?.id, is_self: true } : incomingReply],
+              replies: [...currentReplies, incomingReply ? { ...incomingReply, user_id: user?.id, is_self: true } : incomingReply],
               replies_count: (p.replies_count || 0) + 1,
             };
           }

@@ -164,14 +164,20 @@ router.get('/:id/download', async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
+    // Increment download counter
+    await db('study_materials').where({ id }).increment('downloads_count', 1);
+
+    // If resource is hosted on external cloud / Google Drive vault, redirect
+    if (material.file_path.startsWith('http://') || material.file_path.startsWith('https://')) {
+      res.redirect(material.file_path);
+      return;
+    }
+
     const fullPath = path.join(ENV.UPLOAD_DIR, material.file_path);
     if (!fs.existsSync(fullPath)) {
       res.status(404).json({ error: 'Physical file not found on server.' });
       return;
     }
-
-    // Increment download counter
-    await db('study_materials').where({ id }).increment('downloads_count', 1);
 
     res.download(fullPath, material.original_filename);
   } catch (err) {

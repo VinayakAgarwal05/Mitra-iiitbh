@@ -151,13 +151,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <div className="flex justify-between text-slate-600 dark:text-slate-400 text-[10px]">
                   <span>Career Rooms</span>
                   <span className="font-mono font-medium text-slate-900 dark:text-slate-200">
-                    {dailyUsage.careerRoom.remaining}/10 left
+                    {dailyUsage.careerRoom?.remaining ?? 10}/10 left
                   </span>
                 </div>
                 <div className="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mt-0.5">
                   <div
                     className="bg-blue-600 h-full rounded-full transition-all"
-                    style={{ width: `${(dailyUsage.careerRoom.used / 10) * 100}%` }}
+                    style={{ width: `${(((dailyUsage.careerRoom?.used ?? 0)) / 10) * 100}%` }}
                   />
                 </div>
               </div>
@@ -166,13 +166,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <div className="flex justify-between text-slate-600 dark:text-slate-400 text-[10px]">
                   <span>Student Connect</span>
                   <span className="font-mono font-medium text-slate-900 dark:text-slate-200">
-                    {dailyUsage.studentConnect.remaining}/10 left
+                    {dailyUsage.studentConnect?.remaining ?? 10}/10 left
                   </span>
                 </div>
                 <div className="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mt-0.5">
                   <div
                     className="bg-slate-600 dark:bg-slate-400 h-full rounded-full transition-all"
-                    style={{ width: `${(dailyUsage.studentConnect.used / 10) * 100}%` }}
+                    style={{ width: `${(((dailyUsage.studentConnect?.used ?? 0)) / 10) * 100}%` }}
                   />
                 </div>
               </div>
@@ -181,13 +181,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <div className="flex justify-between text-slate-600 dark:text-slate-400 text-[10px]">
                   <span>Private Issues</span>
                   <span className="font-mono font-medium text-slate-900 dark:text-slate-200">
-                    {dailyUsage.studentIssue.remaining}/2 left
+                    {dailyUsage.studentIssue?.remaining ?? 2}/2 left
                   </span>
                 </div>
                 <div className="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mt-0.5">
                   <div
                     className="bg-amber-600 h-full rounded-full transition-all"
-                    style={{ width: `${(dailyUsage.studentIssue.used / 2) * 100}%` }}
+                    style={{ width: `${(((dailyUsage.studentIssue?.used ?? 0)) / 2) * 100}%` }}
                   />
                 </div>
               </div>

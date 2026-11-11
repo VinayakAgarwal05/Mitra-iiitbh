@@ -8,8 +8,15 @@ import {
   ShieldCheck,
   Building,
   UserCheck,
+  ExternalLink,
 } from 'lucide-react';
 import api from '../api/client';
+
+const LinkedInIcon: React.FC = () => (
+  <svg className="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24">
+    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.64a1.64 1.64 0 1 0 0 3.28 1.64 1.64 0 0 0 0-3.28Z" />
+  </svg>
+);
 
 export const CollegeContactsPage: React.FC = () => {
   const [contacts, setContacts] = useState<any[]>([]);
@@ -22,9 +29,10 @@ export const CollegeContactsPage: React.FC = () => {
       const res = await api.get('/contacts', {
         params: { search, category: selectedCategory },
       });
-      setContacts(res.data);
+      setContacts(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setContacts([]);
     } finally {
       setLoading(false);
     }
@@ -36,6 +44,7 @@ export const CollegeContactsPage: React.FC = () => {
 
   const categories = [
     'all',
+    'Senior Peer Mentor',
     'Hostel Warden',
     'Hostel Representative',
     'Student Representative',
@@ -102,7 +111,7 @@ export const CollegeContactsPage: React.FC = () => {
 
       {/* Contacts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {contacts.length === 0 ? (
+        {(contacts || []).length === 0 ? (
           <div className="col-span-full text-center py-12 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 text-slate-400">
             <UserCheck className="w-8 h-8 mx-auto mb-2 text-slate-400" />
             <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -113,7 +122,7 @@ export const CollegeContactsPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          contacts.map((contact) => (
+          (contacts || []).map((contact) => (
             <div
               key={contact.id}
               className="human-card p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-brand-500/50 dark:hover:border-brand-500/50 transition-all"
@@ -201,6 +210,18 @@ export const CollegeContactsPage: React.FC = () => {
                   >
                     <Phone className="w-3.5 h-3.5" />
                     <span>Call</span>
+                  </a>
+                )}
+                {contact.linkedin && (
+                  <a
+                    href={contact.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-1.5 px-3 rounded-lg bg-[#0077b5] hover:bg-[#005582] text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-colors"
+                    title="View LinkedIn Profile"
+                  >
+                    <LinkedInIcon />
+                    <span>LinkedIn</span>
                   </a>
                 )}
               </div>

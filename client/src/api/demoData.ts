@@ -1,4 +1,7 @@
 // Demo and offline fallback data for Vercel preview deployments when backend is not running
+import adhyayeMaterials from './adhyayeMaterials.json';
+import adhyayeMentors from './adhyayeMentors.json';
+
 export const DEMO_USERS = {
   admin: {
     id: 'admin-verma-01',
@@ -243,6 +246,7 @@ export const DEMO_EVENTS = [
 ];
 
 export const DEMO_CONTACTS = [
+  ...(adhyayeMentors as any[]),
   {
     id: 'contact-1',
     name: 'Dr. Pradeep Kumar',
@@ -359,6 +363,7 @@ export const DEMO_SLOTS = [
 ];
 
 export const DEMO_STUDY_MATERIALS = [
+  ...(adhyayeMaterials as any[]),
   {
     id: 'mat-1',
     title: 'Advanced Data Structures & Algorithms Comprehensive Notes',
