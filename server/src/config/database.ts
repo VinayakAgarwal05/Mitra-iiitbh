@@ -11,7 +11,8 @@ if (ENV.DATABASE_CLIENT === 'pg') {
     (ENV.DATABASE_URL.includes('sslmode=') ||
       ENV.DATABASE_URL.includes('.render.com') ||
       ENV.DATABASE_URL.includes('neon.tech') ||
-      ENV.DATABASE_URL.includes('supabase.co') ||
+      ENV.DATABASE_URL.includes('supabase') ||
+      ENV.DATABASE_URL.includes('cockroachlabs.cloud') ||
       ENV.NODE_ENV === 'production');
 
   dbConfig = {
