@@ -8,6 +8,7 @@ import { Layout } from './components/layout/Layout';
 const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then(m => ({ default: m.RegisterPage })));
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage').then(m => ({ default: m.VerifyEmailPage })));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
 const CareerRoomsPage = lazy(() => import('./pages/CareerRoomsPage').then(m => ({ default: m.CareerRoomsPage })));
 const CareerRoomDetailPage = lazy(() => import('./pages/CareerRoomDetailPage').then(m => ({ default: m.CareerRoomDetailPage })));
@@ -83,6 +84,7 @@ export const App: React.FC = () => {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
               {/* Protected Application Routes */}
               <Route

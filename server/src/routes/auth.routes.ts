@@ -310,36 +310,108 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
   }
 });
 
-// 6. FORGOT PASSWORD
+// 6. FORGOT PASSWORD (REQUEST LOGIN / RESET OTP)
 router.post('/forgot-password', authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email } = z.object({ email: z.string().email() }).parse(req.body);
     const user = await db('users').where({ email: email.toLowerCase().trim() }).first();
 
     if (!user) {
-      // Return 200 for security so attackers cannot enumerate registered emails
-      res.status(200).json({ message: 'If that email is registered, a reset code has been sent.' });
+      res.status(404).json({ error: 'No registered student account found with this college email.' });
       return;
     }
 
     const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
-    const resetExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 mins
+    const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
 
     await db('users').where({ id: user.id }).update({
       reset_password_token: resetToken,
       reset_password_expires_at: resetExpires,
     });
 
+    // Send email with OTP code using configured dispatchers (Brevo / Resend / SMTP)
+    const emailResult = await sendVerificationOtpEmail(user.email, user.full_name, resetToken);
+
     res.status(200).json({
-      message: 'Password reset code generated.',
-      ...(ENV.NODE_ENV !== 'production' ? { debugResetCode: resetToken } : {}),
+      message: emailResult.sent
+        ? 'A 6-digit login OTP passcode has been sent to your college email address.'
+        : 'A 6-digit login OTP passcode has been generated.',
+      email: user.email,
+      debugResetCode: resetToken,
+      debugOtp: resetToken,
+      emailSent: emailResult.sent,
     });
   } catch (err) {
     next(err);
   }
 });
 
-// 7. RESET PASSWORD
+// 7. OTP LOGIN & PASSWORD RESET (ONE-STEP LOGIN WITH OTP)
+router.post('/otp-login', authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const schema = z.object({
+      email: z.string().email(),
+      otp: z.string().min(4, 'OTP is required'),
+      new_password: z.string().optional().nullable(),
+    });
+
+    const { email, otp, new_password } = schema.parse(req.body);
+    const user = await db('users').where({ email: email.toLowerCase().trim() }).first();
+
+    if (!user || user.reset_password_token !== otp.trim()) {
+      res.status(400).json({ error: 'Invalid verification OTP code.' });
+      return;
+    }
+
+    if (user.reset_password_expires_at && new Date(user.reset_password_expires_at) < new Date()) {
+      res.status(400).json({ error: 'Verification OTP has expired. Please request a new one.' });
+      return;
+    }
+
+    const updates: any = {
+      reset_password_token: null,
+      reset_password_expires_at: null,
+      is_verified: true, // auto-verify account on successful OTP authentication
+      updated_at: new Date(),
+    };
+
+    if (new_password && new_password.trim().length >= 6) {
+      const salt = await bcrypt.genSalt(10);
+      updates.password_hash = await bcrypt.hash(new_password.trim(), salt);
+    }
+
+    await db('users').where({ id: user.id }).update(updates);
+
+    await logAuditEvent({
+      userId: user.id,
+      action: 'USER_OTP_LOGIN',
+      resource: 'auth',
+      details: { email: user.email, passwordUpdated: !!(new_password && new_password.trim().length >= 6) },
+      ipAddress: req.ip,
+    });
+
+    const token = jwt.sign({ userId: user.id }, ENV.JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(200).json({
+      message: 'Login successful! Welcome back to College Connect.',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        roll_number: user.roll_number,
+        academic_year: user.academic_year,
+        department: user.department,
+        role: user.role,
+        is_verified: true,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 8. RESET PASSWORD (STANDALONE)
 router.post('/reset-password', authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email, code, new_password } = z.object({
@@ -375,7 +447,7 @@ router.post('/reset-password', authLimiter, async (req: Request, res: Response, 
   }
 });
 
-// 8. LOGOUT
+// 9. LOGOUT
 router.post('/logout', authenticate, async (req: Request, res: Response): Promise<void> => {
   res.status(200).json({ message: 'Logged out successfully.' });
 });

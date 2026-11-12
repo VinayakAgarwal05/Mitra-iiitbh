@@ -124,6 +124,29 @@ describe('COLLEGE CONNECT — Full-Stack Verification Test Suite', () => {
       const res = await request(app).get('/api/career-rooms');
       expect(res.status).toBe(401);
     });
+
+    it('should generate OTP on forgot-password and login successfully via otp-login', async () => {
+      // 1. Request forgot-password OTP
+      const forgotRes = await request(app)
+        .post('/api/auth/forgot-password')
+        .send({ email: 'student1@college.edu' });
+
+      expect(forgotRes.status).toBe(200);
+      expect(forgotRes.body.debugOtp).toBeDefined();
+      const otp = forgotRes.body.debugOtp;
+
+      // 2. Login directly using the OTP
+      const otpLoginRes = await request(app)
+        .post('/api/auth/otp-login')
+        .send({
+          email: 'student1@college.edu',
+          otp,
+        });
+
+      expect(otpLoginRes.status).toBe(200);
+      expect(otpLoginRes.body.token).toBeDefined();
+      expect(otpLoginRes.body.user.email).toBe('student1@college.edu');
+    });
   });
 
   // 2. CAREER ROOMS TESTS (2-ROOM LIMIT & 10-MESSAGE DAILY LIMIT)

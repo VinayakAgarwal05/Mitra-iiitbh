@@ -4,6 +4,7 @@ Allow: /vision
 Allow: /terms
 Allow: /login
 Allow: /register
+Allow: /forgot-password
 
 # Disallow authenticated internal APIs and administration portals
 Disallow: /api/

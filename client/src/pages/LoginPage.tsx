@@ -285,9 +285,17 @@ export const LoginPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Password
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Password
+                  </label>
+                  <Link
+                    to="/forgot-password"
+                    className="text-[11px] font-medium text-brand-700 dark:text-brand-300 hover:underline"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                     <Lock className="w-4 h-4" />
@@ -317,6 +325,16 @@ export const LoginPage: React.FC = () => {
                   </>
                 )}
               </button>
+
+              <div className="text-center pt-1">
+                <Link
+                  to="/forgot-password"
+                  className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-brand-700 dark:hover:text-brand-300 font-medium transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-brand-600" />
+                  <span>Forgot password? Login with Email OTP</span>
+                </Link>
+              </div>
             </form>
 
             {/* Quick Evaluation Demo Accounts */}
