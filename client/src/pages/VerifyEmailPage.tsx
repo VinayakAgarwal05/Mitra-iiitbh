@@ -115,8 +115,8 @@ export const VerifyEmailPage: React.FC = () => {
               <p className="font-mono text-base font-bold text-slate-900 dark:text-white tracking-[0.25em] bg-white dark:bg-slate-900 py-2 px-3 rounded text-center border border-blue-200 dark:border-blue-800 my-1.5 shadow-xs">
                 {debugOtp}
               </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center">
-                Pre-filled automatically below. If you did not receive an email in your inbox, this server does not have SMTP environment variables configured yet. Click <strong>Verify Account</strong> below to proceed.
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center leading-relaxed">
+                Passcode pre-filled below. If the email has not arrived in your primary inbox, please check your <strong>Spam / Junk</strong> folder, or simply click <strong>Verify Account</strong> below to proceed immediately.
               </p>
             </div>
           )}

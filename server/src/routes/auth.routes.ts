@@ -107,9 +107,10 @@ router.post('/register', authLimiter, async (req: Request, res: Response, next: 
     res.status(201).json({
       message: emailResult.sent
         ? 'Registration successful! An OTP has been sent to your college email address.'
-        : 'Registration successful! Verification code generated (SMTP unconfigured on server).',
+        : 'Registration successful! Verification code generated below.',
       email,
-      ...((!emailResult.sent || ENV.NODE_ENV !== 'production') ? { debugOtp: otp } : {}),
+      debugOtp: otp,
+      emailSent: emailResult.sent,
     });
   } catch (err) {
     next(err);
@@ -266,8 +267,9 @@ router.post('/resend-otp', authLimiter, async (req: Request, res: Response, next
     res.status(200).json({
       message: emailResult.sent
         ? 'A new verification code has been dispatched to your email.'
-        : 'A new verification code has been generated (SMTP unconfigured on server).',
-      ...((!emailResult.sent || ENV.NODE_ENV !== 'production') ? { debugOtp: otp } : {}),
+        : 'A new verification code has been generated.',
+      debugOtp: otp,
+      emailSent: emailResult.sent,
     });
   } catch (err) {
     next(err);

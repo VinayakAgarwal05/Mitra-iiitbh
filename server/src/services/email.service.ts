@@ -17,18 +17,40 @@ function getTransporter(): Transporter | null {
     const cleanUser = (ENV.SMTP_USER || '').trim();
     const cleanHost = (ENV.SMTP_HOST || '').trim();
 
-    transporter = nodemailer.createTransport({
-      host: cleanHost,
-      port: ENV.SMTP_PORT,
-      secure: ENV.SMTP_SECURE,
-      auth: {
-        user: cleanUser,
-        pass: cleanPass,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
+    // If host or username mentions gmail, use nodemailer's dedicated gmail service configuration
+    const isGmail = cleanHost.toLowerCase().includes('gmail') || cleanUser.toLowerCase().includes('gmail');
+
+    const transportConfig: any = isGmail
+      ? {
+          service: 'gmail',
+          auth: {
+            user: cleanUser,
+            pass: cleanPass,
+          },
+          tls: {
+            rejectUnauthorized: false,
+          },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 15000,
+        }
+      : {
+          host: cleanHost,
+          port: ENV.SMTP_PORT,
+          secure: ENV.SMTP_SECURE,
+          auth: {
+            user: cleanUser,
+            pass: cleanPass,
+          },
+          tls: {
+            rejectUnauthorized: false,
+          },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 15000,
+        };
+
+    transporter = nodemailer.createTransport(transportConfig);
   }
 
   return transporter;
@@ -112,8 +134,16 @@ export async function sendVerificationOtpEmail(
   `;
 
   try {
+    const cleanUser = (ENV.SMTP_USER || '').trim();
+    const fromAddress =
+      ENV.SMTP_FROM && ENV.SMTP_FROM.includes('@')
+        ? ENV.SMTP_FROM.replace(/[<>"]/g, '').trim().includes('@')
+          ? `"IIIT Bhagalpur MITRA" <${cleanUser || 'no-reply@iiitbh.ac.in'}>`
+          : ENV.SMTP_FROM
+        : `"IIIT Bhagalpur MITRA" <${cleanUser || 'no-reply@iiitbh.ac.in'}>`;
+
     const info = await mailTransporter.sendMail({
-      from: ENV.SMTP_FROM,
+      from: fromAddress,
       to: toEmail,
       subject: `[IIITBH MITRA] ${otp} is your verification passcode`,
       text: `Hello ${fullName},\n\nYour IIIT Bhagalpur MITRA verification code is: ${otp}\n\nThis code expires in 15 minutes.\n\nIIIT Bhagalpur`,
