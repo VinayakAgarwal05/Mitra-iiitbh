@@ -626,7 +626,68 @@ export const VisionPage: React.FC = () => {
 
       {/* 7. HEADS OF ACADEMIC DEPARTMENTS & CENTRES (When 'all' or 'hods') */}
       {(activeTab === 'all' || activeTab === 'hods') && (
-        <section className="space-y-4 pt-4">
+        <section className="space-y-6 pt-4">
+          {/* Core B.Tech Disciplines */}
+          <div className="space-y-3">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-blue-600" />
+              Four Premier B.Tech Engineering Disciplines
+            </h3>
+            <p className="text-xs text-slate-500">
+              The flagship undergraduate programs admitted through JEE (Main) / JoSAA-CSAB counselling at the permanent Sabour campus.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-1.5">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-300 font-mono">
+                  CSE
+                </span>
+                <h4 className="font-bold text-xs text-slate-900 dark:text-white">
+                  Computer Science & Engineering
+                </h4>
+                <p className="text-[11px] text-slate-500 leading-normal">
+                  Algorithms, Software Systems, Cloud Architecture, AI, and High-Performance Compute clusters.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-1.5">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-300 font-mono">
+                  ECE
+                </span>
+                <h4 className="font-bold text-xs text-slate-900 dark:text-white">
+                  Electronics & Communication
+                </h4>
+                <p className="text-[11px] text-slate-500 leading-normal">
+                  VLSI Semiconductor design, IoT architectures, Wireless Communications, and Signal Processing.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-1.5">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-300 font-mono">
+                  MEA
+                </span>
+                <h4 className="font-bold text-xs text-slate-900 dark:text-white">
+                  Mechatronics & Automation
+                </h4>
+                <p className="text-[11px] text-slate-500 leading-normal">
+                  Robotics, Cyber-Physical Systems, Industrial Automation, Smart Actuators, and Embedded Control.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-1.5">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 font-mono">
+                  MnC
+                </span>
+                <h4 className="font-bold text-xs text-slate-900 dark:text-white">
+                  Mathematics & Computing
+                </h4>
+                <p className="text-[11px] text-slate-500 leading-normal">
+                  Quantitative Modeling, Cryptography, Computational Mathematics, Financial Analytics, and Deep Tech.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <Building2 className="w-5 h-5 text-teal-600" />

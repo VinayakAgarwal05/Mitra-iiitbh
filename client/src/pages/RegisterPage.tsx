@@ -381,11 +381,10 @@ export const RegisterPage: React.FC = () => {
                     onChange={handleChange}
                     className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-300/80 dark:border-slate-700 text-slate-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
                   >
-                    <option value="Computer Science and Engineering">Computer Science (CSE)</option>
-                    <option value="Electronics and Communication">Electronics & Comm (ECE)</option>
-                    <option value="Data Science & Artificial Intelligence">Data Science & AI (DSAI)</option>
-                    <option value="Mechatronics & Automation">Mechatronics</option>
-                    <option value="Electrical Engineering">Electrical Engg</option>
+                    <option value="Computer Science and Engineering">Computer Science & Engineering (CSE)</option>
+                    <option value="Electronics and Communication Engineering">Electronics & Communication Engineering (ECE)</option>
+                    <option value="Mechatronics and Automation Engineering">Mechatronics & Automation Engineering (MEA)</option>
+                    <option value="Mathematics and Computing">Mathematics and Computing (MnC)</option>
                     <option value="Administration / Other">Administration / Other</option>
                   </select>
                 </div>

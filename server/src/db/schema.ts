@@ -19,7 +19,7 @@ export async function initializeSchema() {
       table.string('email').unique().notNullable();
       table.string('roll_number').notNullable();
       table.string('academic_year').notNullable(); // e.g. 1st Year, 2nd Year, 3rd Year, 4th Year
-      table.string('department').notNullable(); // e.g. CSE, ECE, DSAI, Mechatronics
+      table.string('department').notNullable(); // e.g. CSE, ECE, MEA, MnC
       table.string('password_hash').notNullable();
       table.string('role').defaultTo('student'); // super_admin, admin, representative, student
       table.boolean('is_verified').defaultTo(false);

@@ -228,10 +228,9 @@ export const ProfilePage: React.FC = () => {
                 className="w-full px-3 py-2 rounded-md bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500"
               >
                 <option value="Computer Science and Engineering">Computer Science & Engineering (CSE)</option>
-                <option value="Electronics and Communication">Electronics & Communication Engineering (ECE)</option>
-                <option value="Data Science & Artificial Intelligence">Data Science & AI (DSAI)</option>
-                <option value="Mechatronics & Automation">Mechatronics & Automation</option>
-                <option value="Electrical Engineering">Electrical Engineering</option>
+                <option value="Electronics and Communication Engineering">Electronics & Communication Engineering (ECE)</option>
+                <option value="Mechatronics and Automation Engineering">Mechatronics & Automation Engineering (MEA)</option>
+                <option value="Mathematics and Computing">Mathematics and Computing (MnC)</option>
                 <option value="Administration / Other">Administration / Other</option>
               </select>
             </div>

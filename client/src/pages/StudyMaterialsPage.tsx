@@ -477,10 +477,10 @@ export const StudyMaterialsPage: React.FC = () => {
                     onChange={(e) => setUploadData({ ...uploadData, department: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white"
                   >
-                    <option value="Computer Science and Engineering">CSE</option>
-                    <option value="Electronics and Communication">ECE</option>
-                    <option value="Data Science & Artificial Intelligence">DSAI</option>
-                    <option value="Mechatronics & Automation">Mechatronics</option>
+                    <option value="Computer Science and Engineering">CSE (Computer Science)</option>
+                    <option value="Electronics and Communication Engineering">ECE (Electronics & Comm.)</option>
+                    <option value="Mechatronics and Automation Engineering">MEA (Mechatronics)</option>
+                    <option value="Mathematics and Computing">MnC (Maths & Computing)</option>
                   </select>
                 </div>
               </div>
