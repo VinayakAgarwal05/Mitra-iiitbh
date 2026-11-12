@@ -1,8 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { ENV } from '../config/env';
 
 export function errorHandler(err: any, _req: Request, res: Response, _next: NextFunction): void {
-  console.error('Unhandled Server Error:', err);
+  // Always log server-side for observability
+  if (ENV.NODE_ENV !== 'test') {
+    console.error('Unhandled Server Error:', err);
+  }
 
   if (err instanceof ZodError) {
     res.status(400).json({
@@ -20,7 +24,12 @@ export function errorHandler(err: any, _req: Request, res: Response, _next: Next
   }
 
   const statusCode = err.status || err.statusCode || 500;
-  const message = err.message || 'An unexpected internal error occurred.';
+  
+  // Mask sensitive database or internal stack traces in production for 5xx errors
+  let message = err.message || 'An unexpected internal error occurred.';
+  if (statusCode >= 500 && ENV.NODE_ENV === 'production') {
+    message = 'An unexpected internal server error occurred. Please try again later.';
+  }
 
   res.status(statusCode).json({
     error: message,

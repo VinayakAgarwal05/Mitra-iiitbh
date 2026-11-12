@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /vision
+Allow: /terms
+Allow: /login
+Allow: /register
+
+# Disallow authenticated internal APIs and administration portals
+Disallow: /api/
+Disallow: /admin
+Disallow: /uploads/
+
+Sitemap: https://iiitbh.ac.in/sitemap.xml

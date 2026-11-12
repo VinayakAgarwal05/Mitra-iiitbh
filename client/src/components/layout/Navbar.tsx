@@ -15,7 +15,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSidebar }) => {
       <div className="flex items-center gap-3">
         <button
           onClick={onOpenSidebar}
-          className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
+          aria-label="Toggle navigation sidebar menu"
+          className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -49,7 +50,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSidebar }) => {
         <Link
           to="/terms"
           title="Community Guidelines & Policy"
-          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          aria-label="Community Guidelines and Student Code of Conduct"
+          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           <HelpCircle className="w-4 h-4" />
         </Link>
@@ -57,7 +59,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenSidebar }) => {
         {/* User Account Pill */}
         <Link
           to="/profile"
-          className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          aria-label={`View user profile for ${user?.full_name || 'student'}`}
+          className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           <div className="w-6 h-6 rounded-md bg-blue-900 text-white flex items-center justify-center text-[11px] font-bold">
             {user?.full_name?.charAt(0) || 'U'}

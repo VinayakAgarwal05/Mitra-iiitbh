@@ -72,7 +72,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="flex items-center gap-3">
             <img
               src="/images/iiitbh_logo.png"
-              alt="IIIT Bhagalpur Crest"
+              alt="IIIT Bhagalpur Official Crest"
+              width="40"
+              height="40"
+              loading="eager"
               className="w-10 h-10 object-contain bg-white p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs shrink-0"
             />
             <div className="min-w-0">
@@ -86,7 +89,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 lg:hidden"
+            aria-label="Close navigation sidebar"
+            className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             <X className="w-5 h-5" />
           </button>
@@ -217,14 +221,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <button
                 onClick={toggleTheme}
                 title="Toggle Theme"
-                className="p-1.5 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme mode`}
+                className="p-1.5 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
               >
                 {theme === 'light' ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
               </button>
               <button
                 onClick={handleLogout}
                 title="Sign Out"
-                className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                aria-label="Sign out of your account"
+                className="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
               >
                 <LogOut className="w-3.5 h-3.5" />
               </button>

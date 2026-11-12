@@ -103,7 +103,7 @@ router.post('/register', authLimiter, async (req: Request, res: Response, next: 
     res.status(201).json({
       message: 'Registration successful! An OTP has been sent to your college email address.',
       email,
-      debugOtp: otp, // Returned for frictionless local verification testing
+      ...(ENV.NODE_ENV !== 'production' ? { debugOtp: otp } : {}),
     });
   } catch (err) {
     next(err);
@@ -257,7 +257,7 @@ router.post('/resend-otp', authLimiter, async (req: Request, res: Response, next
 
     res.status(200).json({
       message: 'A new verification code has been generated.',
-      debugOtp: otp,
+      ...(ENV.NODE_ENV !== 'production' ? { debugOtp: otp } : {}),
     });
   } catch (err) {
     next(err);
@@ -267,6 +267,12 @@ router.post('/resend-otp', authLimiter, async (req: Request, res: Response, next
 // 5. CURRENT USER (GET /me)
 router.get('/me', authenticate, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const user = await db('users').where({ id: req.user!.id }).first();
+    if (!user) {
+      res.status(404).json({ error: 'User account not found.' });
+      return;
+    }
+
     const usage = await getUserDailyUsage(req.user!.id);
     const joinedRooms = await db('room_memberships')
       .join('career_rooms', 'room_memberships.room_id', 'career_rooms.id')
@@ -274,7 +280,16 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
       .select('career_rooms.id', 'career_rooms.name', 'career_rooms.category');
 
     res.status(200).json({
-      user: req.user,
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        roll_number: user.roll_number,
+        academic_year: user.academic_year,
+        department: user.department,
+        role: user.role,
+        is_verified: !!user.is_verified,
+      },
       dailyUsage: usage,
       joinedRooms,
     });
@@ -305,7 +320,7 @@ router.post('/forgot-password', authLimiter, async (req: Request, res: Response,
 
     res.status(200).json({
       message: 'Password reset code generated.',
-      debugResetCode: resetToken,
+      ...(ENV.NODE_ENV !== 'production' ? { debugResetCode: resetToken } : {}),
     });
   } catch (err) {
     next(err);
@@ -351,35 +366,6 @@ router.post('/reset-password', authLimiter, async (req: Request, res: Response, 
 // 8. LOGOUT
 router.post('/logout', authenticate, async (req: Request, res: Response): Promise<void> => {
   res.status(200).json({ message: 'Logged out successfully.' });
-});
-
-// 9. GET CURRENT USER PROFILE & DAILY USAGE (/api/auth/me)
-router.get('/me', authenticate, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const user = await db('users').where({ id: req.user!.id }).first();
-    if (!user) {
-      res.status(404).json({ error: 'User account not found.' });
-      return;
-    }
-
-    const dailyUsage = await getUserDailyUsage(user.id);
-
-    res.status(200).json({
-      user: {
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        roll_number: user.roll_number,
-        academic_year: user.academic_year,
-        department: user.department,
-        role: user.role,
-        is_verified: !!user.is_verified,
-      },
-      dailyUsage,
-    });
-  } catch (err) {
-    next(err);
-  }
 });
 
 export default router;

@@ -35,11 +35,25 @@ const allowedMimeTypes = [
   'image/webp',
 ];
 
+const allowedExts = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.zip', '.txt', '.png', '.jpg', '.jpeg', '.webp'];
+
+const dangerousExts = [
+  '.html', '.htm', '.xhtml', '.svg', '.xml',
+  '.exe', '.bat', '.cmd', '.sh', '.bin', '.msi',
+  '.js', '.mjs', '.cjs', '.ts', '.php', '.phtml',
+  '.py', '.pl', '.vbs', '.ps1', '.jar', '.com'
+];
+
 const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
-  const allowedExts = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.zip', '.txt', '.png', '.jpg', '.jpeg', '.webp'];
 
-  if (allowedMimeTypes.includes(file.mimetype) || allowedExts.includes(ext)) {
+  // Reject dangerous extensions immediately to prevent Stored XSS and remote code execution
+  if (dangerousExts.includes(ext)) {
+    return cb(new Error('Executable or script files are strictly prohibited.'));
+  }
+
+  // Enforce both extension AND mime-type validation
+  if (allowedExts.includes(ext) && allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(new Error(`File type not allowed. Supported formats: ${allowedExts.join(', ')}`));

@@ -3,6 +3,12 @@ import path from 'path';
 
 dotenv.config();
 
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.warn(
+    '⚠️ [SECURITY WARNING]: JWT_SECRET environment variable is not defined in production! Using fallback secret is not recommended for live deployments.'
+  );
+}
+
 export const ENV = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: parseInt(process.env.PORT || '5001', 10),

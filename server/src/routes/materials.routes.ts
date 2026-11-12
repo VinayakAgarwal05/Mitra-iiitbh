@@ -167,19 +167,36 @@ router.get('/:id/download', async (req: Request, res: Response, next: NextFuncti
     // Increment download counter
     await db('study_materials').where({ id }).increment('downloads_count', 1);
 
-    // If resource is hosted on external cloud / Google Drive vault, redirect
+    // If resource is hosted on external cloud / Google Drive vault, validate URL
     if (material.file_path.startsWith('http://') || material.file_path.startsWith('https://')) {
-      res.redirect(material.file_path);
+      try {
+        const parsedUrl = new URL(material.file_path);
+        if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+          res.status(400).json({ error: 'Insecure or invalid redirect URL protocol.' });
+          return;
+        }
+        res.redirect(parsedUrl.toString());
+        return;
+      } catch {
+        res.status(400).json({ error: 'Malformed external resource URL.' });
+        return;
+      }
+    }
+
+    // Path Traversal Hardening: Restrict strictly to UPLOAD_DIR
+    const resolvedUploadDir = path.resolve(ENV.UPLOAD_DIR);
+    const safeFileName = path.basename(material.file_path);
+    const fullPath = path.resolve(resolvedUploadDir, safeFileName);
+
+    if (!fullPath.startsWith(resolvedUploadDir) || !fs.existsSync(fullPath)) {
+      res.status(404).json({ error: 'Physical file not found or inaccessible.' });
       return;
     }
 
-    const fullPath = path.join(ENV.UPLOAD_DIR, material.file_path);
-    if (!fs.existsSync(fullPath)) {
-      res.status(404).json({ error: 'Physical file not found on server.' });
-      return;
-    }
-
-    res.download(fullPath, material.original_filename);
+    // Set download headers to prevent XSS execution in browser context
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Security-Policy', "default-src 'none'");
+    res.download(fullPath, path.basename(material.original_filename || safeFileName));
   } catch (err) {
     next(err);
   }
@@ -242,9 +259,12 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction): P
       return;
     }
 
-    // Remove file from disk
-    const filePath = path.join(ENV.UPLOAD_DIR, material.file_path);
-    if (fs.existsSync(filePath)) {
+    // Remove file from disk safely (mitigating arbitrary file deletion via path traversal)
+    const safeFilename = path.basename(material.file_path);
+    const resolvedDir = path.resolve(ENV.UPLOAD_DIR);
+    const filePath = path.resolve(resolvedDir, safeFilename);
+
+    if (filePath.startsWith(resolvedDir) && fs.existsSync(filePath)) {
       try {
         fs.unlinkSync(filePath);
       } catch (err) {

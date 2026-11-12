@@ -129,6 +129,11 @@ export const CampusHeroSlider: React.FC<CampusHeroSliderProps> = ({ user }) => {
             <img
               src={slide.image}
               alt={slide.title}
+              width="1280"
+              height="720"
+              loading={idx === 0 ? "eager" : "lazy"}
+              decoding={idx === 0 ? "sync" : "async"}
+              fetchPriority={idx === 0 ? "high" : "low"}
               className={`w-full h-full object-cover object-center transition-transform duration-7000 ease-out ${
                 isActive ? 'scale-105' : 'scale-100'
               }`}
