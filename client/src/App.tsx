@@ -20,6 +20,7 @@ import { StudentIssuesPage } from './pages/StudentIssuesPage';
 import { IssueDetailPage } from './pages/IssueDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { TermsPage } from './pages/TermsPage';
+import { VisionPage } from './pages/VisionPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 
 // Protected Route Guard
@@ -91,6 +92,7 @@ export const App: React.FC = () => {
               <Route path="student-issues" element={<StudentIssuesPage />} />
               <Route path="student-issues/:identifier" element={<IssueDetailPage />} />
               <Route path="profile" element={<ProfilePage />} />
+              <Route path="vision" element={<VisionPage />} />
               <Route path="terms" element={<TermsPage />} />
 
               {/* Admin Protected Dashboard */}

@@ -193,6 +193,41 @@ export const DashboardPage: React.FC = () => {
         </ScrollReveal>
       )}
 
+      {/* Featured Institutional Vision & Leadership Banner */}
+      <ScrollReveal animation="slide-up" delay={130}>
+        <div className="relative rounded-2xl overflow-hidden border border-blue-200/80 dark:border-blue-900/50 bg-gradient-to-r from-blue-950 via-slate-900 to-blue-950 text-white p-5 sm:p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-600/30 border border-blue-400/30 flex items-center justify-center shrink-0 text-blue-300">
+              <Compass className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="glass-chip px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-blue-300">
+                  Institutional Leadership
+                </span>
+                <span className="text-[11px] text-slate-300 hidden sm:inline-block">
+                  NEP 2020 • Vikshit Bharat 2047
+                </span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                Our Vision, Mission & Executive Administration
+              </h3>
+              <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                Read Director Prof. Madhusudan Singh’s address on experiential research, Registrar Dr. Dheeraj Kumar Sinha’s governance mandate, the Deans’ Council, and Department Heads.
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to="/vision"
+            className="btn-tactile px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shrink-0 shadow-sm"
+          >
+            <span>Explore Vision</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </ScrollReveal>
+
       {/* Main Grid: Career Rooms & Upcoming Events */}
       <ScrollReveal animation="slide-up" delay={150}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

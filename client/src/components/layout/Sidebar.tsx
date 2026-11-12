@@ -17,6 +17,7 @@ import {
   Sun,
   X,
   GraduationCap,
+  Compass,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -45,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: 'Facility Booking', path: '/slot-booking', icon: Clock },
     { name: 'Student Connect', path: '/student-connect', icon: MessageSquare },
     { name: 'Grievance & Issues', path: '/student-issues', icon: AlertCircle },
+    { name: 'Our Vision & Leadership', path: '/vision', icon: Compass },
     { name: 'Profile & Settings', path: '/profile', icon: User },
     { name: 'Regulations & Terms', path: '/terms', icon: FileText },
   ];
