@@ -13,16 +13,20 @@ function getTransporter(): Transporter | null {
   }
 
   if (!transporter) {
+    const cleanPass = (ENV.SMTP_PASS || '').replace(/\s+/g, '');
+    const cleanUser = (ENV.SMTP_USER || '').trim();
+    const cleanHost = (ENV.SMTP_HOST || '').trim();
+
     transporter = nodemailer.createTransport({
-      host: ENV.SMTP_HOST,
+      host: cleanHost,
       port: ENV.SMTP_PORT,
       secure: ENV.SMTP_SECURE,
       auth: {
-        user: ENV.SMTP_USER,
-        pass: ENV.SMTP_PASS,
+        user: cleanUser,
+        pass: cleanPass,
       },
       tls: {
-        rejectUnauthorized: ENV.NODE_ENV === 'production',
+        rejectUnauthorized: false,
       },
     });
   }
