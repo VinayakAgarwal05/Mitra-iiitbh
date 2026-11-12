@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
@@ -51,30 +52,35 @@ async function ensureSlotsAvailable(targetDate?: string, targetFacility?: string
     const facilitiesToEnsure =
       targetFacility && targetFacility !== 'all' ? [targetFacility] : ALL_CAMPUS_FACILITIES;
 
+    const existingSlotIds = new Set((await db('booking_slots').select('id')).map((r: any) => r.id));
+
     for (const dateStr of datesToEnsure) {
       for (const fac of facilitiesToEnsure) {
         for (const t of STANDARD_SLOT_TIMES) {
-          const cleanFac = fac.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12);
-          const cleanStart = t.start.replace(':', '');
-          const slotId = `slot-${cleanFac}-${dateStr}-${cleanStart}`;
+          const cleanFac = fac.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 24);
+          const hash = crypto.createHash('md5').update(`${fac}|${dateStr}|${t.start}`).digest('hex').slice(0, 8);
+          const slotId = `slot-${cleanFac}-${dateStr}-${t.start.replace(':', '')}-${hash}`;
 
-          const existing = await db('booking_slots')
-            .where({ slot_date: dateStr, facility_or_club: fac, start_time: t.start })
-            .first();
+          if (!existingSlotIds.has(slotId)) {
+            existingSlotIds.add(slotId);
+            const existing = await db('booking_slots')
+              .where({ slot_date: dateStr, facility_or_club: fac, start_time: t.start })
+              .first();
 
-          if (!existing) {
-            await db('booking_slots').insert({
-              id: slotId,
-              facility_or_club: fac,
-              slot_date: dateStr,
-              start_time: t.start,
-              end_time: t.end,
-              is_available: true,
-              max_capacity: 1,
-              notes: 'Equipped with campus infrastructure, smart podium, and climate control.',
-              created_at: new Date(),
-              updated_at: new Date(),
-            });
+            if (!existing) {
+              await db('booking_slots').insert({
+                id: slotId,
+                facility_or_club: fac,
+                slot_date: dateStr,
+                start_time: t.start,
+                end_time: t.end,
+                is_available: true,
+                max_capacity: 1,
+                notes: 'Equipped with campus infrastructure, smart podium, and climate control.',
+                created_at: new Date(),
+                updated_at: new Date(),
+              });
+            }
           }
         }
       }

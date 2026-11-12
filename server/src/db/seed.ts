@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from '../config/database';
@@ -425,28 +426,41 @@ export async function seedDatabase() {
     ];
 
     const today = new Date();
+    const existingSlotIds = new Set((await db('booking_slots').select('id')).map((r: any) => r.id));
+    const slotsToInsert: any[] = [];
+
     for (let dayOffset = 0; dayOffset <= 14; dayOffset++) {
       const d = new Date(today.getTime() + dayOffset * 24 * 60 * 60 * 1000);
       const dateStr = d.toISOString().split('T')[0];
 
       for (const facName of facilities) {
         for (const t of slotTimes) {
-          const cleanFac = facName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12);
-          const cleanStart = t[0].replace(':', '');
-          await db('booking_slots').insert({
-            id: `slot-${cleanFac}-${dateStr}-${cleanStart}`,
-            facility_or_club: facName,
-            slot_date: dateStr,
-            start_time: t[0],
-            end_time: t[1],
-            is_available: true,
-            max_capacity: 1,
-            notes: 'Equipped with presentation screen, Gigabit LAN, and climate control.',
-            created_at: new Date(),
-            updated_at: new Date(),
-          });
+          const cleanFac = facName.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 24);
+          const hash = crypto.createHash('md5').update(`${facName}|${dateStr}|${t[0]}`).digest('hex').slice(0, 8);
+          const slotId = `slot-${cleanFac}-${dateStr}-${t[0].replace(':', '')}-${hash}`;
+
+          if (!existingSlotIds.has(slotId)) {
+            existingSlotIds.add(slotId);
+            slotsToInsert.push({
+              id: slotId,
+              facility_or_club: facName,
+              slot_date: dateStr,
+              start_time: t[0],
+              end_time: t[1],
+              is_available: true,
+              max_capacity: 1,
+              notes: 'Equipped with presentation screen, Gigabit LAN, and climate control.',
+              created_at: new Date(),
+              updated_at: new Date(),
+            });
+          }
         }
       }
+    }
+
+    if (slotsToInsert.length > 0) {
+      console.log(`Inserting ${slotsToInsert.length} verified facility booking slots...`);
+      await db.batchInsert('booking_slots', slotsToInsert, 50);
     }
   }
 
