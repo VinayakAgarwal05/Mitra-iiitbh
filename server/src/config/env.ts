@@ -31,4 +31,6 @@ export const ENV = {
   SMTP_PASS: process.env.SMTP_PASS || '',
   SMTP_FROM: process.env.SMTP_FROM || '"IIIT Bhagalpur MITRA" <no-reply@iiitbh.ac.in>',
   SMTP_SECURE: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
+  RESEND_API_KEY: process.env.RESEND_API_KEY || '',
+  BREVO_API_KEY: process.env.BREVO_API_KEY || '',
 };

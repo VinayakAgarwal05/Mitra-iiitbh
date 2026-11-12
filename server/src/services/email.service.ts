@@ -73,22 +73,6 @@ export async function sendVerificationOtpEmail(
   fullName: string,
   otp: string
 ): Promise<SendVerificationEmailResult> {
-  const mailTransporter = getTransporter();
-
-  if (!mailTransporter) {
-    console.log(`\n========================================================`);
-    console.log(`📧 [EMAIL SERVICE - SMTP UNCONFIGURED]`);
-    console.log(`Recipient: ${toEmail} (${fullName})`);
-    console.log(`Verification OTP: [ ${otp} ]`);
-    console.log(`Note: Provide SMTP_HOST, SMTP_USER, SMTP_PASS in .env to deliver real emails.`);
-    console.log(`========================================================\n`);
-
-    return {
-      sent: false,
-      fallbackOtp: otp,
-    };
-  }
-
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -133,35 +117,115 @@ export async function sendVerificationOtpEmail(
     </html>
   `;
 
-  try {
-    const cleanUser = (ENV.SMTP_USER || '').trim();
-    const fromAddress =
-      ENV.SMTP_FROM && ENV.SMTP_FROM.includes('@')
-        ? ENV.SMTP_FROM.replace(/[<>"]/g, '').trim().includes('@')
-          ? `"IIIT Bhagalpur MITRA" <${cleanUser || 'no-reply@iiitbh.ac.in'}>`
-          : ENV.SMTP_FROM
-        : `"IIIT Bhagalpur MITRA" <${cleanUser || 'no-reply@iiitbh.ac.in'}>`;
+  // 1. Try Brevo HTTP REST API (Works over HTTPS port 443 - NEVER blocked by Render Free Tier)
+  if (ENV.BREVO_API_KEY) {
+    try {
+      const cleanSender = (ENV.SMTP_USER || 'mitraiiitbh@gmail.com').trim();
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': ENV.BREVO_API_KEY,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: {
+            name: 'IIIT Bhagalpur MITRA',
+            email: cleanSender,
+          },
+          to: [{ email: toEmail, name: fullName }],
+          subject: `[IIITBH MITRA] ${otp} is your verification passcode`,
+          htmlContent,
+        }),
+      });
 
-    const info = await mailTransporter.sendMail({
-      from: fromAddress,
-      to: toEmail,
-      subject: `[IIITBH MITRA] ${otp} is your verification passcode`,
-      text: `Hello ${fullName},\n\nYour IIIT Bhagalpur MITRA verification code is: ${otp}\n\nThis code expires in 15 minutes.\n\nIIIT Bhagalpur`,
-      html: htmlContent,
-    });
-
-    console.log(`✅ [EMAIL SERVICE] Verification email sent to ${toEmail}: messageId=${info.messageId}`);
-    return {
-      sent: true,
-      messageId: info.messageId,
-    };
-  } catch (err: any) {
-    console.error(`❌ [EMAIL SERVICE ERROR] Failed to send email to ${toEmail}:`, err?.message || err);
-    // Return fallbackOtp so the student is never locked out due to network/SMTP misconfiguration
-    return {
-      sent: false,
-      fallbackOtp: otp,
-      error: err?.message || 'SMTP delivery failure',
-    };
+      if (res.ok) {
+        const data: any = await res.json();
+        console.log(`✅ [EMAIL SERVICE: BREVO REST API] Email delivered to ${toEmail}: messageId=${data.messageId}`);
+        return { sent: true, messageId: data.messageId };
+      } else {
+        const errorText = await res.text();
+        console.error(`⚠️ [BREVO API ERROR]: ${res.status} - ${errorText}`);
+      }
+    } catch (e: any) {
+      console.error(`⚠️ [BREVO API EXCEPTION]:`, e?.message || e);
+    }
   }
+
+  // 2. Try Resend HTTP REST API (Works over HTTPS port 443 - NEVER blocked by Render Free Tier)
+  if (ENV.RESEND_API_KEY) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${ENV.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: ENV.SMTP_FROM || 'IIIT Bhagalpur MITRA <onboarding@resend.dev>',
+          to: [toEmail],
+          subject: `[IIITBH MITRA] ${otp} is your verification passcode`,
+          html: htmlContent,
+        }),
+      });
+
+      if (res.ok) {
+        const data: any = await res.json();
+        console.log(`✅ [EMAIL SERVICE: RESEND REST API] Email delivered to ${toEmail}: id=${data.id}`);
+        return { sent: true, messageId: data.id };
+      } else {
+        const errorText = await res.text();
+        console.error(`⚠️ [RESEND API ERROR]: ${res.status} - ${errorText}`);
+      }
+    } catch (e: any) {
+      console.error(`⚠️ [RESEND API EXCEPTION]:`, e?.message || e);
+    }
+  }
+
+  // 3. Try Standard SMTP (Nodemailer - works on paid instances or local network)
+  const mailTransporter = getTransporter();
+  if (mailTransporter) {
+    try {
+      const cleanUser = (ENV.SMTP_USER || '').trim();
+      const fromAddress =
+        ENV.SMTP_FROM && ENV.SMTP_FROM.includes('@')
+          ? ENV.SMTP_FROM.replace(/[<>"]/g, '').trim().includes('@')
+            ? `"IIIT Bhagalpur MITRA" <${cleanUser || 'no-reply@iiitbh.ac.in'}>`
+            : ENV.SMTP_FROM
+          : `"IIIT Bhagalpur MITRA" <${cleanUser || 'no-reply@iiitbh.ac.in'}>`;
+
+      const info = await mailTransporter.sendMail({
+        from: fromAddress,
+        to: toEmail,
+        subject: `[IIITBH MITRA] ${otp} is your verification passcode`,
+        text: `Hello ${fullName},\n\nYour IIIT Bhagalpur MITRA verification code is: ${otp}\n\nThis code expires in 15 minutes.\n\nIIIT Bhagalpur`,
+        html: htmlContent,
+      });
+
+      console.log(`✅ [EMAIL SERVICE: SMTP] Verification email sent to ${toEmail}: messageId=${info.messageId}`);
+      return {
+        sent: true,
+        messageId: info.messageId,
+      };
+    } catch (err: any) {
+      console.error(`❌ [EMAIL SERVICE: SMTP ERROR] Failed to send email to ${toEmail}:`, err?.message || err);
+      return {
+        sent: false,
+        fallbackOtp: otp,
+        error: err?.message || 'SMTP delivery failure (Render Free blocks SMTP ports)',
+      };
+    }
+  }
+
+  // 4. Fallback when unconfigured
+  console.log(`\n========================================================`);
+  console.log(`📧 [EMAIL SERVICE - NO DISPATCHER CONFIGURED]`);
+  console.log(`Recipient: ${toEmail} (${fullName})`);
+  console.log(`Verification OTP: [ ${otp} ]`);
+  console.log(`========================================================\n`);
+
+  return {
+    sent: false,
+    fallbackOtp: otp,
+  };
 }
