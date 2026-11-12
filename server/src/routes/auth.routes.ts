@@ -9,6 +9,7 @@ import { authenticate } from '../middleware/auth';
 import { authLimiter } from '../middleware/rateLimiter';
 import { logAuditEvent } from '../services/auditLog.service';
 import { getUserDailyUsage } from '../services/messageCounter.service';
+import { sendVerificationOtpEmail } from '../services/email.service';
 
 const router = Router();
 
@@ -100,10 +101,15 @@ router.post('/register', authLimiter, async (req: Request, res: Response, next: 
       ipAddress: req.ip,
     });
 
+    // Send verification email via SMTP if configured, or gracefully fallback
+    const emailResult = await sendVerificationOtpEmail(email, data.full_name, otp);
+
     res.status(201).json({
-      message: 'Registration successful! An OTP has been sent to your college email address.',
+      message: emailResult.sent
+        ? 'Registration successful! An OTP has been sent to your college email address.'
+        : 'Registration successful! Verification code generated (SMTP unconfigured on server).',
       email,
-      ...(ENV.NODE_ENV !== 'production' ? { debugOtp: otp } : {}),
+      ...((!emailResult.sent || ENV.NODE_ENV !== 'production') ? { debugOtp: otp } : {}),
     });
   } catch (err) {
     next(err);
@@ -255,9 +261,13 @@ router.post('/resend-otp', authLimiter, async (req: Request, res: Response, next
       verification_otp_expires_at: otpExpires,
     });
 
+    const emailResult = await sendVerificationOtpEmail(user.email, user.full_name, otp);
+
     res.status(200).json({
-      message: 'A new verification code has been generated.',
-      ...(ENV.NODE_ENV !== 'production' ? { debugOtp: otp } : {}),
+      message: emailResult.sent
+        ? 'A new verification code has been dispatched to your email.'
+        : 'A new verification code has been generated (SMTP unconfigured on server).',
+      ...((!emailResult.sent || ENV.NODE_ENV !== 'production') ? { debugOtp: otp } : {}),
     });
   } catch (err) {
     next(err);

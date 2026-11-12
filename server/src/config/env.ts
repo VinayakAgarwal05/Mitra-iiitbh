@@ -25,4 +25,10 @@ export const ENV = {
   CAREER_ROOM_MEMBERSHIP_LIMIT: parseInt(process.env.CAREER_ROOM_MEMBERSHIP_LIMIT || '2', 10),
   TIMEZONE: process.env.TIMEZONE || 'Asia/Kolkata',
   UPLOAD_DIR: process.env.UPLOAD_DIR || path.resolve(__dirname, '../../uploads'),
+  SMTP_HOST: process.env.SMTP_HOST || '',
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || '587', 10),
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASS: process.env.SMTP_PASS || '',
+  SMTP_FROM: process.env.SMTP_FROM || '"IIIT Bhagalpur MITRA" <no-reply@iiitbh.ac.in>',
+  SMTP_SECURE: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
 };

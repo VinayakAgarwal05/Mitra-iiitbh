@@ -102,13 +102,21 @@ export const VerifyEmailPage: React.FC = () => {
           )}
 
           {debugOtp && (
-            <div className="mb-5 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 text-blue-900 dark:text-blue-300 text-xs">
-              <div className="font-semibold flex items-center gap-1.5 mb-1">
-                <CheckCircle2 className="w-4 h-4 text-blue-700 dark:text-blue-400" />
-                <span>Development Passcode:</span>
+            <div className="mb-5 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 text-blue-900 dark:text-blue-300 text-xs animate-slideDown">
+              <div className="font-semibold flex items-center justify-between gap-1.5 mb-1">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                  <span>One-Time Verification Passcode:</span>
+                </div>
+                <span className="text-[10px] bg-blue-200/60 dark:bg-blue-900/80 px-1.5 py-0.5 rounded font-medium text-blue-800 dark:text-blue-200">
+                  Instant Access
+                </span>
               </div>
-              <p className="font-mono text-sm font-bold text-slate-900 dark:text-white tracking-widest bg-white dark:bg-slate-900 py-1.5 px-3 rounded text-center border border-blue-200 dark:border-blue-800">
+              <p className="font-mono text-base font-bold text-slate-900 dark:text-white tracking-[0.25em] bg-white dark:bg-slate-900 py-2 px-3 rounded text-center border border-blue-200 dark:border-blue-800 my-1.5 shadow-xs">
                 {debugOtp}
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center">
+                Pre-filled automatically below. If you did not receive an email in your inbox, this server does not have SMTP environment variables configured yet. Click <strong>Verify Account</strong> below to proceed.
               </p>
             </div>
           )}
