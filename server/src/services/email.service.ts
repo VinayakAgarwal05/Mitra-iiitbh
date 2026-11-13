@@ -117,7 +117,34 @@ export async function sendVerificationOtpEmail(
     </html>
   `;
 
-  // 1. Try Brevo HTTP REST API (Works over HTTPS port 443 - NEVER blocked by Render Free Tier)
+  // 1. Try Google Apps Script Webhook (Native Gmail delivery over HTTPS port 443)
+  if (ENV.GMAIL_WEBHOOK_URL) {
+    try {
+      const res = await fetch(ENV.GMAIL_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: toEmail,
+          subject: `[IIITBH MITRA] ${otp} is your verification passcode`,
+          html: htmlContent,
+          text: `Hello ${fullName},\n\nYour IIIT Bhagalpur MITRA verification code is: ${otp}\n\nThis code expires in 15 minutes.\n\nIIIT Bhagalpur`,
+        }),
+      });
+
+      if (res.ok) {
+        console.log(`✅ [EMAIL SERVICE: GMAIL WEBHOOK] Email sent to ${toEmail} directly via Google Apps Script`);
+        return { sent: true };
+      } else {
+        console.error(`⚠️ [GMAIL WEBHOOK RESPONSE]: ${res.status}`);
+      }
+    } catch (e: any) {
+      console.error(`⚠️ [GMAIL WEBHOOK ERROR]:`, e?.message || e);
+    }
+  }
+
+  // 2. Try Brevo HTTP REST API (Works over HTTPS port 443 - NEVER blocked by Render Free Tier)
   if (ENV.BREVO_API_KEY) {
     try {
       const cleanSender = (ENV.SMTP_USER || 'mitraiiitbh@gmail.com').trim();

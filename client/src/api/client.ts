@@ -571,7 +571,43 @@ function handleDemoFallback(config: any): any {
 
   // 4. RESEND OTP (/auth/resend-otp)
   if (urlPath.includes('/auth/resend-otp') && method === 'post') {
-    return ok({ message: 'Verification code resent successfully.' });
+    return ok({ message: 'Verification code resent successfully.', debugOtp: '849201' });
+  }
+
+  // 4b. FORGOT PASSWORD (/auth/forgot-password)
+  if (urlPath.includes('/auth/forgot-password') && method === 'post') {
+    const email = (body.email || '').toLowerCase().trim();
+    return ok({
+      message: 'A 6-digit login OTP passcode has been generated.',
+      email,
+      debugOtp: '849201',
+      debugResetCode: '849201',
+      emailSent: false,
+    });
+  }
+
+  // 4c. OTP LOGIN (/auth/otp-login)
+  if (urlPath.includes('/auth/otp-login') && method === 'post') {
+    const email = (body.email || 'student1@college.edu').toLowerCase().trim();
+    const studentUser = {
+      id: 'student-' + email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '_'),
+      email,
+      full_name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+      roll_number: email.split('@')[0].toUpperCase(),
+      academic_year: '1st Year',
+      department: 'Computer Science and Engineering',
+      role: 'student' as const,
+      is_verified: true,
+    };
+    try {
+      localStorage.setItem('college_connect_token', 'demo-jwt-token-student');
+      localStorage.setItem('college_connect_user', JSON.stringify(studentUser));
+    } catch {}
+    return ok({
+      message: 'Authentication successful! Welcome back.',
+      token: 'demo-jwt-token-student',
+      user: studentUser,
+    });
   }
 
   // 5. CURRENT USER PROFILE (/auth/me)

@@ -314,11 +314,42 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
 router.post('/forgot-password', authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email } = z.object({ email: z.string().email() }).parse(req.body);
-    const user = await db('users').where({ email: email.toLowerCase().trim() }).first();
+    const normalizedEmail = email.toLowerCase().trim();
+    let user = await db('users').where({ email: normalizedEmail }).first();
 
     if (!user) {
-      res.status(404).json({ error: 'No registered student account found with this college email.' });
-      return;
+      const isAllowed = await isEmailDomainAllowed(normalizedEmail);
+      if (!isAllowed) {
+        res.status(400).json({
+          error: 'Password recovery restricted. Only authorized college email domains (@iiitbh.ac.in, @college.edu) are permitted.',
+        });
+        return;
+      }
+
+      // Auto-provision new student account so they can immediately sign in with OTP
+      const userId = uuidv4();
+      const salt = await bcrypt.genSalt(10);
+      const tempPasswordHash = await bcrypt.hash(uuidv4(), salt);
+      const rawName = normalizedEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+
+      await db('users').insert({
+        id: userId,
+        full_name: rawName,
+        email: normalizedEmail,
+        roll_number: normalizedEmail.split('@')[0].toUpperCase(),
+        academic_year: '1st Year',
+        department: 'Computer Science and Engineering',
+        password_hash: tempPasswordHash,
+        role: 'student',
+        is_verified: true,
+        terms_accepted: true,
+        terms_version: '1.0',
+        terms_accepted_at: new Date(),
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      user = await db('users').where({ id: userId }).first();
     }
 
     const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
