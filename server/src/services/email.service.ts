@@ -30,9 +30,9 @@ function getTransporter(): Transporter | null {
           tls: {
             rejectUnauthorized: false,
           },
-          connectionTimeout: 10000,
-          greetingTimeout: 10000,
-          socketTimeout: 15000,
+          connectionTimeout: 5000,
+          greetingTimeout: 5000,
+          socketTimeout: 5000,
         }
       : {
           host: cleanHost,
@@ -45,9 +45,9 @@ function getTransporter(): Transporter | null {
           tls: {
             rejectUnauthorized: false,
           },
-          connectionTimeout: 10000,
-          greetingTimeout: 10000,
-          socketTimeout: 15000,
+          connectionTimeout: 5000,
+          greetingTimeout: 5000,
+          socketTimeout: 5000,
         };
 
     transporter = nodemailer.createTransport(transportConfig);
@@ -120,10 +120,16 @@ export async function sendVerificationOtpEmail(
   // 1. Try Google Apps Script Webhook (Native Gmail delivery over HTTPS port 443)
   if (ENV.GMAIL_WEBHOOK_URL) {
     try {
-      const res = await fetch(ENV.GMAIL_WEBHOOK_URL, {
+      let scriptUrl = ENV.GMAIL_WEBHOOK_URL.trim();
+      if (scriptUrl.endsWith('/dev')) {
+        console.warn('⚠️ [GMAIL WEBHOOK]: URL ended in /dev, switching to /exec for public access');
+        scriptUrl = scriptUrl.replace(/\/dev$/, '/exec');
+      }
+
+      const res = await fetch(scriptUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain;charset=utf-8',
         },
         body: JSON.stringify({
           to: toEmail,
@@ -131,13 +137,15 @@ export async function sendVerificationOtpEmail(
           html: htmlContent,
           text: `Hello ${fullName},\n\nYour IIIT Bhagalpur MITRA verification code is: ${otp}\n\nThis code expires in 15 minutes.\n\nIIIT Bhagalpur`,
         }),
+        redirect: 'follow',
       });
 
       if (res.ok) {
         console.log(`✅ [EMAIL SERVICE: GMAIL WEBHOOK] Email sent to ${toEmail} directly via Google Apps Script`);
         return { sent: true };
       } else {
-        console.error(`⚠️ [GMAIL WEBHOOK RESPONSE]: ${res.status}`);
+        const errText = await res.text().catch(() => '');
+        console.error(`⚠️ [GMAIL WEBHOOK RESPONSE]: ${res.status} - ${errText.slice(0, 150)}`);
       }
     } catch (e: any) {
       console.error(`⚠️ [GMAIL WEBHOOK ERROR]:`, e?.message || e);

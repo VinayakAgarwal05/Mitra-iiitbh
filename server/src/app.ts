@@ -23,6 +23,9 @@ import userRoutes from './routes/user.routes';
 
 const app = express();
 
+// Trust Render's reverse proxy for correct client IP detection in rate limiting
+app.set('trust proxy', 1);
+
 // 1. Strict Security Headers via Helmet
 app.use(
   helmet({
