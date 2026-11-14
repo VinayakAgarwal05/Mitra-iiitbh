@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import {
@@ -152,6 +153,17 @@ export const StudentIssuesPage: React.FC = () => {
   useEffect(() => {
     loadAllData();
   }, [selectedCategory, selectedStatus, sortBy]);
+
+  useEffect(() => {
+    if (showSubmitModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showSubmitModal]);
 
   // Listen for real-time issues and reaction updates
   useEffect(() => {
@@ -688,10 +700,11 @@ export const StudentIssuesPage: React.FC = () => {
         </div>
       )}
 
-      {/* ZERO-FRICTION GRIEVANCE REGISTRATION MODAL */}
-      {showSubmitModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-xl w-full p-6 sm:p-7 shadow-2xl animate-scaleUp my-8">
+      {/* ZERO-FRICTION GRIEVANCE REGISTRATION MODAL RENDERED VIA PORTAL TO BODY */}
+      {showSubmitModal &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-xl w-full p-6 sm:p-7 shadow-2xl animate-scaleUp my-auto max-h-[92vh] overflow-y-auto">
             <div className="flex items-start justify-between pb-3.5 border-b border-slate-200 dark:border-slate-800">
               <div className="space-y-0.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
@@ -848,7 +861,8 @@ export const StudentIssuesPage: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

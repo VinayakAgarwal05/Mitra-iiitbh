@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import {
@@ -217,6 +218,17 @@ export const SlotBookingPage: React.FC = () => {
     setDescription('Campus facility reservation for academic and student development activities.');
     setModalError(null);
   };
+
+  useEffect(() => {
+    if (activeSlot) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [activeSlot]);
 
   useEffect(() => {
     if (locationState?.autoOpenSlot) {
@@ -898,10 +910,11 @@ export const SlotBookingPage: React.FC = () => {
         </div>
       )}
 
-      {/* ZERO-FRICTION FACILITY RESERVATION MODAL */}
-      {activeSlot && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 sm:p-7 shadow-2xl animate-scaleUp my-8">
+      {/* ZERO-FRICTION FACILITY RESERVATION MODAL RENDERED VIA PORTAL TO BODY */}
+      {activeSlot &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 sm:p-7 shadow-2xl animate-scaleUp my-auto max-h-[92vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-start justify-between pb-3.5 border-b border-slate-200 dark:border-slate-800">
               <div className="space-y-0.5">
@@ -1115,7 +1128,8 @@ export const SlotBookingPage: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -47,19 +47,19 @@ export default {
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0', transform: 'translateY(6px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '1', transform: 'none' },
         },
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(14px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '1', transform: 'none' },
         },
         slideDown: {
           '0%': { opacity: '0', transform: 'translateY(-10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '1', transform: 'none' },
         },
         scaleIn: {
           '0%': { opacity: '0', transform: 'scale(0.98)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
+          '100%': { opacity: '1', transform: 'none' },
         },
         pulseSlow: {
           '0%, 100%': { opacity: '1' },
