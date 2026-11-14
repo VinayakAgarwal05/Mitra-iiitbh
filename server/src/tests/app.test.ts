@@ -388,6 +388,39 @@ describe('COLLEGE CONNECT — Full-Stack Verification Test Suite', () => {
       expect(res.status).toBe(400);
       expect(res.body.error).toMatch(/already have an active/i);
     });
+
+    it('should support flexible individual booking with auto-defaults and return human-readable validation error on invalid input', async () => {
+      // 1. Invalid request without purpose should return clear human-readable error, not cryptic 'Validation failed'
+      const invalidRes = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({
+          slot_id: 'slot-sample-invalid-id',
+          purpose: 'A', // too short (< 2 chars)
+        });
+
+      expect(invalidRes.status).toBe(400);
+      expect(invalidRes.body.error).toContain('Please specify the booking purpose');
+
+      // 2. Valid request without club or long description should auto-default cleanly
+      const validSlots = await request(app)
+        .get('/api/bookings/slots')
+        .set('Authorization', `Bearer ${studentToken}`);
+      const availableSlot = validSlots.body.find((s: any) => s.id !== slot.id && !s.is_booked);
+
+      if (availableSlot) {
+        const validRes = await request(app)
+          .post('/api/bookings')
+          .set('Authorization', `Bearer ${studentToken}`)
+          .send({
+            slot_id: availableSlot.id,
+            purpose: 'Group Study',
+          });
+
+        expect(validRes.status).toBe(201);
+        expect(validRes.body.booking.club_or_society).toBe('Individual / Student Group');
+      }
+    });
   });
 
   // 6. SECURITY & ROLE AUTHORIZATION TESTS

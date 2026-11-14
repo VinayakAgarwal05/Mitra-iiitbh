@@ -9,9 +9,11 @@ export function errorHandler(err: any, _req: Request, res: Response, _next: Next
   }
 
   if (err instanceof ZodError) {
+    const errorMessages = err.errors.map((e) => e.message).filter(Boolean);
+    const summaryMsg = errorMessages.length > 0 ? errorMessages.join('. ') : 'Validation failed. Please verify your input.';
     res.status(400).json({
-      error: 'Validation failed',
-      details: err.errors.map(e => ({ field: e.path.join('.'), message: e.message })),
+      error: summaryMsg,
+      details: err.errors.map((e) => ({ field: e.path.join('.'), message: e.message })),
     });
     return;
   }

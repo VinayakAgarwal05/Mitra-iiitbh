@@ -139,16 +139,29 @@ router.get('/slots', async (req: Request, res: Response, next: NextFunction): Pr
   }
 });
 
-// 2. SUBMIT A BOOKING REQUEST (WITH DOUBLE-BOOKING PREVENTION)
+// 2. SUBMIT A BOOKING REQUEST (WITH DOUBLE-BOOKING PREVENTION & FLEXIBLE VALIDATION)
 const bookingRequestSchema = z.object({
-  slot_id: z.string().min(1, 'Slot ID is required'),
+  slot_id: z.string().min(1, 'Please select a valid facility slot'),
   facility_or_club: z.string().optional(),
   slot_date: z.string().optional(),
   start_time: z.string().optional(),
   end_time: z.string().optional(),
-  club_or_society: z.string().min(2, 'Club or society name is required'),
-  purpose: z.string().min(3, 'Purpose is required'),
-  description: z.string().min(10, 'Please describe the booking purpose in detail (min 10 chars)'),
+  club_or_society: z
+    .string()
+    .optional()
+    .transform((val) => (val && val.trim().length > 0 ? val.trim() : 'Individual / Student Group')),
+  purpose: z
+    .string()
+    .min(2, 'Please specify the booking purpose (min 2 characters)')
+    .transform((val) => val.trim()),
+  description: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val && val.trim().length >= 3
+        ? val.trim()
+        : 'Campus facility reservation for academic and student development activities.'
+    ),
 });
 
 router.post('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -176,18 +189,22 @@ router.post('/', async (req: Request, res: Response, next: NextFunction): Promis
         const sStart = start_time || '09:00';
         const sEnd = end_time || '12:00';
 
-        await trx('booking_slots').insert({
-          id: slot_id,
-          facility_or_club: fac,
-          slot_date: sDate,
-          start_time: sStart,
-          end_time: sEnd,
-          is_available: true,
-          max_capacity: 1,
-          notes: 'Auto-provisioned campus facility booking slot',
-          created_at: new Date(),
-          updated_at: new Date(),
-        });
+        try {
+          await trx('booking_slots').insert({
+            id: slot_id,
+            facility_or_club: fac,
+            slot_date: sDate,
+            start_time: sStart,
+            end_time: sEnd,
+            is_available: true,
+            max_capacity: 1,
+            notes: 'Auto-provisioned campus facility booking slot',
+            created_at: new Date(),
+            updated_at: new Date(),
+          });
+        } catch {
+          // If concurrently inserted or ID exists, safely continue
+        }
 
         slot = await trx('booking_slots').where({ id: slot_id }).first();
       }

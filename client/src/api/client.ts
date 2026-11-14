@@ -751,12 +751,16 @@ function handleDemoFallback(config: any): any {
 
     const currentUser = getCurrentDemoUser();
 
+    const club = (body.club_or_society || '').trim() || 'Individual / Student Group';
+    const purpose = (body.purpose || '').trim() || 'Campus facility reservation';
+    const desc = (body.description || '').trim() || 'Facility reservation for academic / student activity';
+
     const newBooking = {
       id: 'demo-bkg-' + Date.now(),
       slot_id: body.slot_id,
-      club_or_society: body.club_or_society,
-      purpose: body.purpose,
-      description: body.description,
+      club_or_society: club,
+      purpose: purpose,
+      description: desc,
       facility_or_club: slot.facility_or_club,
       slot_date: slot.slot_date,
       start_time: slot.start_time,
