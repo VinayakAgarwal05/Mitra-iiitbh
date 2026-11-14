@@ -206,8 +206,16 @@ export async function initializeSchema() {
       table.string('attachment_path').nullable();
       table.string('attachment_name').nullable();
       table.string('status').defaultTo('submitted'); // submitted, under_review, in_progress, resolved, closed
+      table.boolean('is_anonymous').defaultTo(false);
       table.timestamps(true, true);
     });
+  } else {
+    const hasIsAnon = await db.schema.hasColumn('student_issues', 'is_anonymous');
+    if (!hasIsAnon) {
+      await db.schema.alterTable('student_issues', (table) => {
+        table.boolean('is_anonymous').defaultTo(false);
+      });
+    }
   }
 
   // 13. issue_messages (confidential replies between student and issue handling team)
@@ -219,6 +227,18 @@ export async function initializeSchema() {
       table.string('sender_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
       table.text('message').notNullable();
       table.timestamp('created_at').defaultTo(db.fn.now());
+    });
+  }
+
+  // 13b. issue_reactions (community upvotes / me too)
+  if (!(await db.schema.hasTable('issue_reactions'))) {
+    await db.schema.createTable('issue_reactions', (table) => {
+      table.string('id').primary();
+      table.string('issue_id').notNullable().references('id').inTable('student_issues').onDelete('CASCADE');
+      table.string('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+      table.string('reaction_type').defaultTo('upvote');
+      table.timestamp('created_at').defaultTo(db.fn.now());
+      table.unique(['issue_id', 'user_id', 'reaction_type']);
     });
   }
 

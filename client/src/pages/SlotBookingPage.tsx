@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import {
   Clock,
@@ -128,6 +129,9 @@ function getTimeOfDay(startTime: string) {
 
 export const SlotBookingPage: React.FC = () => {
   const { user, token } = useAuth();
+  const location = useLocation();
+  const locationState = location.state as { autoOpenSlot?: any } | undefined;
+
   const [slots, setSlots] = useState<any[]>([]);
   const [myBookings, setMyBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -213,6 +217,12 @@ export const SlotBookingPage: React.FC = () => {
     setDescription('Campus facility reservation for academic and student development activities.');
     setModalError(null);
   };
+
+  useEffect(() => {
+    if (locationState?.autoOpenSlot) {
+      handleOpenBookingModal(locationState.autoOpenSlot);
+    }
+  }, [locationState]);
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

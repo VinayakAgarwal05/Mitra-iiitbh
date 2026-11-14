@@ -19,6 +19,9 @@ import {
   Building2,
   FileText,
   Compass,
+  ShieldAlert,
+  ThumbsUp,
+  PlusCircle,
 } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -90,16 +93,18 @@ export const DashboardPage: React.FC = () => {
   const [recentMaterials, setRecentMaterials] = useState<any[]>([]);
   const [recentPosts, setRecentPosts] = useState<any[]>([]);
   const [availableSlots, setAvailableSlots] = useState<any[]>([]);
+  const [recentIssues, setRecentIssues] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [roomsRes, eventsRes, materialsRes, connectRes, slotsRes] = await Promise.all([
+        const [roomsRes, eventsRes, materialsRes, connectRes, slotsRes, issuesRes] = await Promise.all([
           api.get('/career-rooms'),
           api.get('/events'),
           api.get('/materials'),
           api.get('/student-connect/messages'),
           api.get('/bookings/slots'),
+          api.get('/issues').catch(() => ({ data: [] })),
         ]);
 
         const joined = (roomsRes.data.rooms || []).filter((r: any) => r.is_member);
@@ -108,6 +113,7 @@ export const DashboardPage: React.FC = () => {
         setRecentMaterials((materialsRes.data || []).slice(0, 4));
         setRecentPosts((connectRes.data.posts || []).slice(0, 3));
         setAvailableSlots((slotsRes.data || []).filter((s: any) => !s.is_booked).slice(0, 4));
+        setRecentIssues((issuesRes.data || []).slice(0, 3));
       } catch (err) {
         console.error('Dashboard load error:', err);
       } finally {
@@ -513,6 +519,70 @@ export const DashboardPage: React.FC = () => {
         </div>
       </ScrollReveal>
 
+      {/* Campus Community Concerns & Town Hall Preview */}
+      <ScrollReveal animation="slide-up" delay={280}>
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-rose-500" />
+                <h2 className="font-bold text-sm text-slate-900 dark:text-white">
+                  Campus Community Concerns & Town Hall
+                </h2>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Issues raised by peers across hostels, mess, and IT systems. Upvote to prioritize.
+              </p>
+            </div>
+            <Link
+              to="/student-issues"
+              className="text-xs font-semibold text-blue-900 dark:text-blue-400 hover:underline flex items-center gap-1"
+            >
+              <span>View All Concerns</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {(recentIssues || []).map((iss) => (
+              <Link
+                key={iss.id}
+                to={`/student-issues/${iss.tracking_id}`}
+                className="human-card p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 flex flex-col justify-between hover:border-blue-400/50 hover:shadow-xs transition-all"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-mono font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">
+                      {iss.tracking_id}
+                    </span>
+                    <span className="text-[10px] font-bold text-blue-900 dark:text-blue-400 uppercase">
+                      {iss.category}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-xs text-slate-900 dark:text-white line-clamp-1">
+                    {iss.title}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                    {iss.description}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500">
+                  <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
+                    <ThumbsUp className="w-3 h-3 text-blue-600" />
+                    <span>{iss.upvotes_count || 0} Upvotes</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MessageSquare className="w-3 h-3 text-slate-400" />
+                    <span>{iss.responses_count || 0} replies</span>
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </ScrollReveal>
+
       {/* Available Facilities & Slots Quick Booking */}
       <ScrollReveal animation="slide-up" delay={300}>
         <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
@@ -552,9 +622,11 @@ export const DashboardPage: React.FC = () => {
                 </div>
                 <Link
                   to="/slot-booking"
-                  className="btn-tactile mt-3 text-center py-1.5 px-3 rounded-lg bg-blue-900 text-white text-xs font-medium hover:bg-blue-800 transition-colors shadow-xs"
+                  state={{ autoOpenSlot: slot }}
+                  className="btn-tactile mt-3 text-center py-2 px-3 rounded-xl bg-blue-900 text-white text-xs font-semibold hover:bg-blue-800 transition-colors shadow-xs flex items-center justify-center gap-1.5"
                 >
-                  Request Slot
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  <span>Book Facility Slot</span>
                 </Link>
               </div>
             ))}

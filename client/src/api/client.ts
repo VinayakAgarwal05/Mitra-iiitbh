@@ -1175,9 +1175,56 @@ function handleDemoFallback(config: any): any {
       storedIssues = DEFAULT_STUDENT_ISSUES;
     }
 
+    // Toggle reaction (upvote / me too)
+    if (urlPath.includes('/react') && method === 'post') {
+      const parts = urlPath.split('/');
+      const issueId = parts[parts.indexOf('issues') + 1];
+      let reacted = true;
+      let count = 1;
+      storedIssues = storedIssues.map((iss: any) => {
+        if (iss.id === issueId || iss.tracking_id === issueId) {
+          const hasReacted = !!iss.has_upvoted;
+          reacted = !hasReacted;
+          count = Math.max(0, (iss.upvotes_count || 0) + (reacted ? 1 : -1));
+          return { ...iss, has_upvoted: reacted, upvotes_count: count };
+        }
+        return iss;
+      });
+      try {
+        localStorage.setItem('demo_student_issues', JSON.stringify(storedIssues));
+      } catch {}
+      return ok({ reacted, upvotes_count: count, message: reacted ? 'Concern upvoted.' : 'Upvote removed.' });
+    }
+
+    // Post reply message
+    if (urlPath.includes('/messages') && method === 'post') {
+      const parts = urlPath.split('/');
+      const issueId = parts[parts.indexOf('issues') + 1];
+      const newMsg = {
+        id: 'msg-' + Date.now(),
+        sender_role: currentUser?.role === 'admin' ? 'admin' : 'student',
+        sender_name: currentUser?.full_name || 'Verified Student',
+        message: body.message || '',
+        created_at: new Date().toISOString(),
+        is_own: true,
+      };
+      storedIssues = storedIssues.map((iss: any) => {
+        if (iss.id === issueId || iss.tracking_id === issueId) {
+          const msgs = Array.isArray(iss.messages) ? [...iss.messages, newMsg] : [newMsg];
+          return { ...iss, messages: msgs, responses_count: msgs.length };
+        }
+        return iss;
+      });
+      try {
+        localStorage.setItem('demo_student_issues', JSON.stringify(storedIssues));
+      } catch {}
+      return ok({ message: 'Response posted.', data: newMsg }, 201);
+    }
+
     if (urlPath.includes('/my-submissions')) {
+      const myOnly = storedIssues.filter((i: any) => i.user_id === currentUserId || !i.user_id);
       return ok({
-        issues: storedIssues,
+        issues: myOnly,
         dailyUsage: currentUsage.studentIssue,
         remainingDailySubmissions: currentUsage.studentIssue.remaining,
       });
@@ -1190,9 +1237,28 @@ function handleDemoFallback(config: any): any {
         storedIssues.find((i: any) => i.id === identifier || i.tracking_id === identifier) ||
         storedIssues[0];
       return ok({
-        issue: found,
+        issue: {
+          ...found,
+          upvotes_count: found.upvotes_count || 12,
+          has_upvoted: found.has_upvoted || false,
+          responses_count: (found.messages || []).length,
+          author_display: found.author_display || (found.is_anonymous ? 'Anonymous Student' : 'Aarav Sharma • 3rd Year CSE'),
+        },
         messages: found?.messages || [],
+        isOwner: found?.user_id === currentUserId,
       });
+    }
+
+    // GET /issues (all community issues)
+    if (method === 'get') {
+      let enriched = storedIssues.map((iss: any) => ({
+        ...iss,
+        upvotes_count: iss.upvotes_count !== undefined ? iss.upvotes_count : 8,
+        has_upvoted: iss.has_upvoted || false,
+        responses_count: Array.isArray(iss.messages) ? iss.messages.length : 2,
+        author_display: iss.author_display || (iss.is_anonymous ? 'Anonymous Student' : 'IIITBH Student'),
+      }));
+      return ok(enriched);
     }
 
     if (method === 'post') {

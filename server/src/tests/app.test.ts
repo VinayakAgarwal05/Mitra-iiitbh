@@ -340,6 +340,46 @@ describe('COLLEGE CONNECT — Full-Stack Verification Test Suite', () => {
       expect(res.body.code).toBe('DAILY_ISSUE_LIMIT_REACHED');
       expect(res.body.remaining).toBe(0);
     });
+
+    it('should allow community viewing, upvoting (reacting), and replying to student issues', async () => {
+      // 1. Fetch community issues feed
+      const feedRes = await request(app)
+        .get('/api/issues')
+        .set('Authorization', `Bearer ${studentToken}`);
+
+      expect(feedRes.status).toBe(200);
+      expect(Array.isArray(feedRes.body)).toBe(true);
+      expect(feedRes.body.length).toBeGreaterThan(0);
+
+      const targetIssue = feedRes.body[0];
+
+      // 2. Upvote reaction
+      const reactRes = await request(app)
+        .post(`/api/issues/${targetIssue.id}/react`)
+        .set('Authorization', `Bearer ${studentToken}`);
+
+      expect(reactRes.status).toBe(200);
+      expect(typeof reactRes.body.reacted).toBe('boolean');
+      expect(typeof reactRes.body.upvotes_count).toBe('number');
+
+      // 3. Post reply to the issue
+      const replyRes = await request(app)
+        .post(`/api/issues/${targetIssue.id}/messages`)
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({ message: 'I also noticed this issue in block 2, technician needs to be notified.' });
+
+      expect(replyRes.status).toBe(201);
+      expect(replyRes.body.data.message).toContain('block 2');
+
+      // 4. View issue details and thread
+      const trackRes = await request(app)
+        .get(`/api/issues/track/${targetIssue.tracking_id}`)
+        .set('Authorization', `Bearer ${studentToken}`);
+
+      expect(trackRes.status).toBe(200);
+      expect(trackRes.body.issue.tracking_id).toBe(targetIssue.tracking_id);
+      expect(Array.isArray(trackRes.body.messages)).toBe(true);
+    });
   });
 
   // 5. BOOKING TESTS (DOUBLE-BOOKING PREVENTION)
@@ -403,23 +443,20 @@ describe('COLLEGE CONNECT — Full-Stack Verification Test Suite', () => {
       expect(invalidRes.body.error).toContain('Please specify the booking purpose');
 
       // 2. Valid request without club or long description should auto-default cleanly
-      const validSlots = await request(app)
-        .get('/api/bookings/slots')
-        .set('Authorization', `Bearer ${studentToken}`);
-      const availableSlot = validSlots.body.find((s: any) => s.id !== slot.id && !s.is_booked);
+      const validRes = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({
+          slot_id: `slot-test-unique-${Date.now()}`,
+          facility_or_club: 'Central Library Discussion & Study Vault Room',
+          slot_date: '2026-12-25',
+          start_time: '14:00',
+          end_time: '17:00',
+          purpose: 'Group Study',
+        });
 
-      if (availableSlot) {
-        const validRes = await request(app)
-          .post('/api/bookings')
-          .set('Authorization', `Bearer ${studentToken}`)
-          .send({
-            slot_id: availableSlot.id,
-            purpose: 'Group Study',
-          });
-
-        expect(validRes.status).toBe(201);
-        expect(validRes.body.booking.club_or_society).toBe('Individual / Student Group');
-      }
+      expect(validRes.status).toBe(201);
+      expect(validRes.body.booking.club_or_society).toBe('Individual / Student Group');
     });
   });
 
