@@ -111,12 +111,11 @@ router.post('/register', authLimiter, async (req: Request, res: Response, next: 
     // Send verification email via SMTP if configured, or gracefully fallback
     const emailResult = await sendVerificationOtpEmail(email, data.full_name, otp);
 
+    const isTest = ENV.NODE_ENV === 'test';
     res.status(201).json({
-      message: emailResult.sent
-        ? 'Registration successful! An OTP has been sent to your college email address.'
-        : 'Registration successful! Verification code generated below.',
+      message: 'Registration successful! A verification passcode has been sent to your college email address.',
       email,
-      debugOtp: otp,
+      ...(isTest ? { debugOtp: otp } : {}),
       emailSent: emailResult.sent,
     });
   } catch (err) {
@@ -271,11 +270,10 @@ router.post('/resend-otp', authLimiter, async (req: Request, res: Response, next
 
     const emailResult = await sendVerificationOtpEmail(user.email, user.full_name, otp);
 
+    const isTest = ENV.NODE_ENV === 'test';
     res.status(200).json({
-      message: emailResult.sent
-        ? 'A new verification code has been dispatched to your email.'
-        : 'A new verification code has been generated.',
-      debugOtp: otp,
+      message: 'A new verification passcode has been dispatched to your email address.',
+      ...(isTest ? { debugOtp: otp } : {}),
       emailSent: emailResult.sent,
     });
   } catch (err) {
@@ -375,13 +373,11 @@ router.post('/forgot-password', authLimiter, async (req: Request, res: Response,
     // Send email with OTP code using configured dispatchers (Brevo / Resend / SMTP)
     const emailResult = await sendVerificationOtpEmail(user.email, user.full_name, resetToken);
 
+    const isTest = ENV.NODE_ENV === 'test';
     res.status(200).json({
-      message: emailResult.sent
-        ? 'A 6-digit login OTP passcode has been sent to your college email address.'
-        : 'A 6-digit login OTP passcode has been generated.',
+      message: 'A 6-digit login passcode has been sent to your college email address.',
       email: user.email,
-      debugResetCode: resetToken,
-      debugOtp: resetToken,
+      ...(isTest ? { debugResetCode: resetToken, debugOtp: resetToken } : {}),
       emailSent: emailResult.sent,
     });
   } catch (err) {

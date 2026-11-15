@@ -152,7 +152,7 @@ export const RegisterPage: React.FC = () => {
         terms_accepted: formData.terms_accepted,
       });
 
-      navigate(`/verify-email?email=${encodeURIComponent(cleanEmail)}&otp=${res.data.debugOtp || ''}`);
+      navigate(`/verify-email?email=${encodeURIComponent(cleanEmail)}`);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Registration failed. Please check your details.');
     } finally {

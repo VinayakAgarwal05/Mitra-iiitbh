@@ -8,7 +8,6 @@ export const VerifyEmailPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [debugOtp, setDebugOtp] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,12 +17,7 @@ export const VerifyEmailPage: React.FC = () => {
 
   useEffect(() => {
     const emailParam = searchParams.get('email');
-    const otpParam = searchParams.get('otp');
     if (emailParam) setEmail(emailParam);
-    if (otpParam) {
-      setDebugOtp(otpParam);
-      setOtp(otpParam);
-    }
   }, [searchParams]);
 
   const handleVerify = async (e: React.FormEvent) => {
@@ -55,11 +49,7 @@ export const VerifyEmailPage: React.FC = () => {
     setError(null);
     try {
       const res = await api.post('/auth/resend-otp', { email });
-      setMessage(res.data.message);
-      if (res.data.debugOtp) {
-        setDebugOtp(res.data.debugOtp);
-        setOtp(res.data.debugOtp);
-      }
+      setMessage(res.data.message || 'A new verification passcode has been sent to your email.');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to resend code.');
     } finally {
@@ -98,26 +88,6 @@ export const VerifyEmailPage: React.FC = () => {
             <div className="mb-4 sm:mb-5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 lg:text-emerald-700 dark:lg:text-emerald-300 text-xs flex items-start gap-2.5">
               <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
               <span className="font-medium leading-relaxed">{message}</span>
-            </div>
-          )}
-
-          {debugOtp && (
-            <div className="mb-4 sm:mb-5 p-3 rounded-xl bg-blue-500/15 lg:bg-blue-50 dark:bg-blue-950/60 border border-blue-500/30 lg:border-blue-200 dark:border-blue-900 text-blue-200 lg:text-blue-900 dark:text-blue-300 text-xs animate-slideDown">
-              <div className="font-semibold flex items-center justify-between gap-1.5 mb-1">
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-blue-400 lg:text-blue-700" />
-                  <span>One-Time Verification Passcode:</span>
-                </div>
-                <span className="text-[10px] bg-blue-400/20 lg:bg-blue-200/60 px-1.5 py-0.5 rounded font-medium text-blue-300 lg:text-blue-800">
-                  Instant Access
-                </span>
-              </div>
-              <p className="font-mono text-base font-bold text-white lg:text-slate-900 dark:text-white tracking-[0.25em] bg-slate-900 lg:bg-white dark:bg-slate-900 py-2 px-3 rounded text-center border border-slate-700 lg:border-blue-200 dark:border-blue-800 my-1.5 shadow-xs">
-                {debugOtp}
-              </p>
-              <p className="text-[11px] text-slate-300 lg:text-slate-500 dark:text-slate-400 text-center leading-relaxed">
-                Passcode pre-filled below. Check your Spam folder if delayed, or click <strong>Verify Account</strong> below.
-              </p>
             </div>
           )}
 

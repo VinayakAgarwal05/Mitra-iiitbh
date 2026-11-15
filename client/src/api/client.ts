@@ -571,18 +571,16 @@ function handleDemoFallback(config: any): any {
 
   // 4. RESEND OTP (/auth/resend-otp)
   if (urlPath.includes('/auth/resend-otp') && method === 'post') {
-    return ok({ message: 'Verification code resent successfully.', debugOtp: '849201' });
+    return ok({ message: 'Verification code resent to your email successfully.' });
   }
 
   // 4b. FORGOT PASSWORD (/auth/forgot-password)
   if (urlPath.includes('/auth/forgot-password') && method === 'post') {
     const email = (body.email || '').toLowerCase().trim();
     return ok({
-      message: 'A 6-digit login OTP passcode has been generated.',
+      message: 'A 6-digit login passcode has been dispatched to your college email address.',
       email,
-      debugOtp: '849201',
-      debugResetCode: '849201',
-      emailSent: false,
+      emailSent: true,
     });
   }
 
