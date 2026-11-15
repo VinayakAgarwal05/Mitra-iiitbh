@@ -12,7 +12,8 @@ describe('COLLEGE CONNECT — Full-Stack Verification Test Suite', () => {
 
     // Clean up test user & bookings from any prior test runs
     await db('users').where({ email: 'rohan.new@college.edu' }).del();
-    await db('bookings').where({ purpose: 'Autonomous Rover Testing' }).del();
+    await db('bookings').whereIn('purpose', ['Autonomous Rover Testing', 'Group Study']).del();
+    await db('booking_slots').where('id', 'like', 'slot-test-%').del();
     await db('student_issues').where('title', 'like', '%Test%').orWhere('title', 'like', '%Wi-Fi%').orWhere('title', 'like', '%Mess%').orWhere('title', 'like', '%Third%').del();
     await db('messages').where('content', 'like', '%automated verification%').orWhere('content', 'like', '%Connect message iteration%').del();
   });
