@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   FileText,
   Shield,
@@ -10,14 +10,34 @@ import {
   BookOpen,
   Calendar,
   Building2,
+  ArrowLeft,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const TermsPage: React.FC = () => {
   const { user } = useAuth();
 
+  useEffect(() => {
+    document.title = 'Regulations & Terms — IIIT Bhagalpur MITRA';
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-fadeIn">
+    <div className="space-y-6 max-w-4xl mx-auto py-4 px-4 sm:px-6 animate-fadeIn">
+      {/* Breadcrumb / Back button */}
+      <div className="flex items-center justify-between">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Return to Dashboard</span>
+        </Link>
+        <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+          Charter Ref: REG-2026-v2.1 • Effective Nov 2026
+        </span>
+      </div>
       {/* Formal Academic Header */}
       <div className="border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
         <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300 uppercase tracking-wider mb-1">
@@ -120,6 +140,16 @@ export const TermsPage: React.FC = () => {
             Violations of these regulations will result in temporary suspension of messaging quotas, revoking of booking rights, or permanent expulsion from the digital community, without prejudice to statutory disciplinary proceedings instituted under institute statutes.
           </p>
         </section>
+      </div>
+
+      {/* Footer Navigation */}
+      <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-4 text-xs text-slate-500 dark:text-slate-400">
+        <Link to="/privacy" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+          View Data Privacy & Confidentiality Policy &rarr;
+        </Link>
+        <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+          Back to Portal Home
+        </Link>
       </div>
     </div>
   );

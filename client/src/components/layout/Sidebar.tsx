@@ -12,6 +12,7 @@ import {
   User,
   FileText,
   ShieldCheck,
+  Shield,
   LogOut,
   Moon,
   Sun,
@@ -49,6 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: 'Our Vision & Leadership', path: '/vision', icon: Compass },
     { name: 'Profile & Settings', path: '/profile', icon: User },
     { name: 'Regulations & Terms', path: '/terms', icon: FileText },
+    { name: 'Privacy Policy', path: '/privacy', icon: Shield },
   ];
 
   return (

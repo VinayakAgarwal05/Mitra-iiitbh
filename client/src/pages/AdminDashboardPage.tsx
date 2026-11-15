@@ -124,6 +124,7 @@ export const AdminDashboardPage: React.FC = () => {
   };
 
   useEffect(() => {
+    document.title = 'Admin Command Center — IIIT Bhagalpur MITRA';
     fetchOverview();
   }, []);
 

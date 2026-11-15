@@ -443,13 +443,14 @@ describe('COLLEGE CONNECT — Full-Stack Verification Test Suite', () => {
       expect(invalidRes.body.error).toContain('Please specify the booking purpose');
 
       // 2. Valid request without club or long description should auto-default cleanly
+      const testTimestamp = Date.now();
       const validRes = await request(app)
         .post('/api/bookings')
         .set('Authorization', `Bearer ${studentToken}`)
         .send({
-          slot_id: `slot-test-unique-${Date.now()}`,
+          slot_id: `slot-test-unique-${testTimestamp}`,
           facility_or_club: 'Central Library Discussion & Study Vault Room',
-          slot_date: '2026-12-25',
+          slot_date: '2028-11-20',
           start_time: '14:00',
           end_time: '17:00',
           purpose: 'Group Study',

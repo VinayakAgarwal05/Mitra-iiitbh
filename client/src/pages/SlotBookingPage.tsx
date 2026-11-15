@@ -181,6 +181,7 @@ export const SlotBookingPage: React.FC = () => {
   };
 
   useEffect(() => {
+    document.title = 'Facility & Slot Booking — IIIT Bhagalpur MITRA';
     fetchSlotsAndBookings();
   }, [selectedFacility, selectedDate]);
 

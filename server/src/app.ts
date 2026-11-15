@@ -26,6 +26,18 @@ const app = express();
 // Trust Render's reverse proxy for correct client IP detection in rate limiting
 app.set('trust proxy', 1);
 
+// Force HTTPS redirection in production when behind reverse proxies
+app.use((req, res, next) => {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    req.headers['x-forwarded-proto'] &&
+    req.headers['x-forwarded-proto'] !== 'https'
+  ) {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
+
 // 1. Strict Security Headers via Helmet
 app.use(
   helmet({

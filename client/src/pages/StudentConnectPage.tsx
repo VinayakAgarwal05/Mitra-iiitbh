@@ -67,6 +67,7 @@ export const StudentConnectPage: React.FC = () => {
   };
 
   useEffect(() => {
+    document.title = 'Student Connect & Campus Chat — IIIT Bhagalpur MITRA';
     fetchFeed();
 
     // Cross-tab real-time sync for demo/preview environments

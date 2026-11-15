@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Compass,
   Award,
@@ -26,6 +26,11 @@ import { ScrollReveal } from '../components/common/ScrollReveal';
 
 export const VisionPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'vision' | 'director' | 'registrar' | 'deans' | 'hods'>('all');
+
+  useEffect(() => {
+    document.title = 'Vision, Leadership & Charter — IIIT Bhagalpur MITRA';
+    window.scrollTo(0, 0);
+  }, []);
 
   const missionPillars = [
     {

@@ -82,6 +82,7 @@ export const CalendarPage: React.FC = () => {
   };
 
   useEffect(() => {
+    document.title = 'Academic Calendar & Schedule — IIIT Bhagalpur MITRA';
     fetchEvents();
   }, [search, selectedCategory]);
 

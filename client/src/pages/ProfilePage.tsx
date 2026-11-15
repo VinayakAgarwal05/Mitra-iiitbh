@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User,
   Mail,
@@ -33,6 +33,11 @@ export const ProfilePage: React.FC = () => {
   const [updatingPassword, setUpdatingPassword] = useState(false);
 
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  useEffect(() => {
+    document.title = 'Profile & Intranet Settings — IIIT Bhagalpur MITRA';
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();

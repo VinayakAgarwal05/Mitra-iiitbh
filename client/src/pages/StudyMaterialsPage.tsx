@@ -69,6 +69,7 @@ export const StudyMaterialsPage: React.FC = () => {
   };
 
   useEffect(() => {
+    document.title = 'Study Materials & Exam Vault — IIIT Bhagalpur MITRA';
     fetchMaterials();
   }, [search, selectedSemester, selectedDept, selectedCategory, sortBy]);
 

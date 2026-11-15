@@ -41,10 +41,17 @@ const registerSchema = z.object({
   terms_accepted: z.boolean().refine(val => val === true, {
     message: 'You must accept the Terms and Conditions to register.',
   }),
+  hp_website: z.string().optional(),
 });
 
 router.post('/register', authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Honeypot spam/bot check
+    if (req.body.hp_website) {
+      res.status(400).json({ error: 'Automated spam submission rejected.' });
+      return;
+    }
+
     const data = registerSchema.parse(req.body);
     const email = data.email.toLowerCase().trim();
 
@@ -313,7 +320,12 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
 // 6. FORGOT PASSWORD (REQUEST LOGIN / RESET OTP)
 router.post('/forgot-password', authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { email } = z.object({ email: z.string().email() }).parse(req.body);
+    if (req.body.hp_website) {
+      res.status(400).json({ error: 'Automated spam submission rejected.' });
+      return;
+    }
+
+    const { email } = z.object({ email: z.string().email(), hp_website: z.string().optional() }).parse(req.body);
     const normalizedEmail = email.toLowerCase().trim();
     let user = await db('users').where({ email: normalizedEmail }).first();
 

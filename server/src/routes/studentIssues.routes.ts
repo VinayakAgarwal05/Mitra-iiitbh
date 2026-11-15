@@ -148,12 +148,18 @@ router.post(
     try {
       const userId = req.user!.id;
 
+      if (req.body.hp_website) {
+        res.status(400).json({ error: 'Automated spam submission rejected.' });
+        return;
+      }
+
       // Validate inputs
       const schema = z.object({
         category: z.string().min(1, 'Category is required'),
         title: z.string().min(5, 'Title must be at least 5 characters').max(200),
         description: z.string().min(15, 'Please provide detailed description (min 15 characters)'),
         location: z.string().optional().nullable(),
+        hp_website: z.string().optional(),
         is_anonymous: z
           .union([z.boolean(), z.string().transform((v) => v === 'true' || v === '1')])
           .optional(),

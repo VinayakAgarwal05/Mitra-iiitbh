@@ -40,6 +40,7 @@ export const CollegeContactsPage: React.FC = () => {
   };
 
   useEffect(() => {
+    document.title = 'Institutional Directory & Contacts — IIIT Bhagalpur MITRA';
     fetchContacts();
   }, [search, selectedCategory]);
 

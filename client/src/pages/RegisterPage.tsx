@@ -73,12 +73,14 @@ export const RegisterPage: React.FC = () => {
     confirm_password: '',
     terms_accepted: false,
   });
+  const [hpWebsite, setHpWebsite] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [slideIdx, setSlideIdx] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = 'Create Account — IIIT Bhagalpur MITRA';
     const timer = setInterval(() => {
       setSlideIdx((prev) => (prev + 1) % REGISTER_SLIDES.length);
     }, 5500);
@@ -99,13 +101,40 @@ export const RegisterPage: React.FC = () => {
     e.preventDefault();
     setError(null);
 
+    // Spam / bot trap
+    if (hpWebsite) {
+      setError('Automated submission rejected.');
+      return;
+    }
+
+    if (!formData.full_name.trim() || formData.full_name.trim().length < 2) {
+      setError('Please provide your full legal name (minimum 2 characters).');
+      return;
+    }
+
+    const cleanEmail = formData.email.trim().toLowerCase();
+    if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      setError('Please enter a valid institutional college email address.');
+      return;
+    }
+
+    if (!formData.roll_number.trim()) {
+      setError('College Roll Number / Student ID is required.');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must contain at least 6 characters.');
+      return;
+    }
+
     if (formData.password !== formData.confirm_password) {
       setError('Passwords do not match.');
       return;
     }
 
     if (!formData.terms_accepted) {
-      setError('You must accept the Community Regulations and Terms to register.');
+      setError('You must accept the Community Regulations and Privacy Policy to register.');
       return;
     }
 
@@ -113,16 +142,16 @@ export const RegisterPage: React.FC = () => {
 
     try {
       const res = await api.post('/auth/register', {
-        full_name: formData.full_name,
-        email: formData.email,
-        roll_number: formData.roll_number,
+        full_name: formData.full_name.trim(),
+        email: cleanEmail,
+        roll_number: formData.roll_number.trim(),
         academic_year: formData.academic_year,
         department: formData.department,
         password: formData.password,
         terms_accepted: formData.terms_accepted,
       });
 
-      navigate(`/verify-email?email=${encodeURIComponent(formData.email)}&otp=${res.data.debugOtp || ''}`);
+      navigate(`/verify-email?email=${encodeURIComponent(cleanEmail)}&otp=${res.data.debugOtp || ''}`);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Registration failed. Please check your details.');
     } finally {
@@ -432,6 +461,18 @@ export const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Invisible Honeypot Spam Trap */}
+              <input
+                type="text"
+                name="hp_website"
+                value={hpWebsite}
+                onChange={(e) => setHpWebsite(e.target.value)}
+                style={{ display: 'none', position: 'absolute', left: '-9999px' }}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+              />
+
               <div className="pt-1">
                 <label className="flex items-start gap-2.5 cursor-pointer">
                   <input
@@ -439,41 +480,56 @@ export const RegisterPage: React.FC = () => {
                     name="terms_accepted"
                     checked={formData.terms_accepted}
                     onChange={handleChange}
-                    className="mt-0.5 rounded text-brand-800 focus:ring-brand-700 border-slate-300"
+                    className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
                   />
                   <span className="text-xs text-slate-600 dark:text-slate-400 leading-normal">
                     I accept the{' '}
-                    <Link to="/terms" target="_blank" className="text-brand-700 dark:text-brand-300 font-medium underline">
-                      Community Regulations & Code of Conduct
+                    <Link to="/terms" target="_blank" className="text-blue-600 dark:text-blue-400 font-semibold underline">
+                      Community Regulations
+                    </Link>{' '}
+                    and{' '}
+                    <Link to="/privacy" target="_blank" className="text-blue-600 dark:text-blue-400 font-semibold underline">
+                      Privacy Policy
                     </Link>
-                    , anonymous interaction policies, and institute welfare terms.
+                    , including anonymous discourse and academic integrity guidelines.
                   </span>
                 </label>
               </div>
 
+              {/* Primary Call to Action */}
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-tactile w-full py-2.5 px-4 rounded-lg bg-brand-800 hover:bg-brand-900 text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-xs"
+                className="btn-tactile w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20 disabled:opacity-50 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {loading ? (
                   <span>Processing Registration...</span>
                 ) : (
                   <>
-                    <span>Create Account & Verify OTP</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>Create Account & Verify Passcode</span>
+                    <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
             </form>
 
-            <div className="text-center pt-2">
-              <p className="text-xs text-slate-500">
+            <div className="text-center pt-2 space-y-2">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 Already registered?{' '}
-                <Link to="/login" className="font-medium text-brand-700 dark:text-brand-300 hover:underline">
-                  Sign In
+                <Link to="/login" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                  Sign In to MITRA &rarr;
                 </Link>
               </p>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
+                <Link to="/terms" className="hover:text-blue-600 dark:hover:text-blue-400 underline">
+                  Terms of Service
+                </Link>
+                <span>•</span>
+                <Link to="/privacy" className="hover:text-blue-600 dark:hover:text-blue-400 underline">
+                  Privacy Policy
+                </Link>
+              </div>
             </div>
           </div>
         </ScrollReveal>

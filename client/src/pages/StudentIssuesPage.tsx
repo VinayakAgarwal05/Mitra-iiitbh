@@ -151,6 +151,7 @@ export const StudentIssuesPage: React.FC = () => {
   };
 
   useEffect(() => {
+    document.title = 'Campus Concerns & Town Hall — IIIT Bhagalpur MITRA';
     loadAllData();
   }, [selectedCategory, selectedStatus, sortBy]);
 
@@ -237,6 +238,30 @@ export const StudentIssuesPage: React.FC = () => {
       setNotification({
         type: 'error',
         message: 'Daily submission quota reached. Maximum 2 grievance tickets may be submitted per day.',
+      });
+      return;
+    }
+
+    if (!category.trim()) {
+      setNotification({
+        type: 'error',
+        message: 'Please choose an issue category.',
+      });
+      return;
+    }
+
+    if (title.trim().length < 5) {
+      setNotification({
+        type: 'error',
+        message: 'Title must contain at least 5 characters.',
+      });
+      return;
+    }
+
+    if (description.trim().length < 15) {
+      setNotification({
+        type: 'error',
+        message: 'Please provide a detailed description (minimum 15 characters).',
       });
       return;
     }

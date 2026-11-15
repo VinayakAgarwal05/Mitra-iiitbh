@@ -5,6 +5,7 @@ export const apiLimiter = rateLimit({
   max: 300, // Limit each IP to 300 requests per 15 mins
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   message: {
     error: 'Too many requests from this IP, please try again after 15 minutes.',
   },
@@ -15,6 +16,7 @@ export const authLimiter = rateLimit({
   max: 30, // Limit each IP to 30 auth requests per 15 mins
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   message: {
     error: 'Too many authentication attempts, please try again after 15 minutes.',
   },

@@ -43,6 +43,7 @@ export const CareerRoomsPage: React.FC = () => {
   };
 
   useEffect(() => {
+    document.title = 'Career Guidance Rooms — IIIT Bhagalpur MITRA';
     fetchRooms();
   }, []);
 

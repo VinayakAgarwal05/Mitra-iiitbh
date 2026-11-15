@@ -66,6 +66,7 @@ const LOGIN_SLIDES = [
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [hpWebsite, setHpWebsite] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [slideIdx, setSlideIdx] = useState(0);
@@ -73,6 +74,7 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = 'Sign In — IIIT Bhagalpur MITRA';
     const timer = setInterval(() => {
       setSlideIdx((prev) => (prev + 1) % LOGIN_SLIDES.length);
     }, 5500);
@@ -82,10 +84,28 @@ export const LoginPage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Spam / bot trap
+    if (hpWebsite) {
+      setError('Bot submission detected.');
+      return;
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      setError('Please enter a valid institutional email address.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await api.post('/auth/login', { email, password });
+      const res = await api.post('/auth/login', { email: cleanEmail, password });
       login(res.data.token, res.data.user);
       navigate('/');
     } catch (err: any) {
@@ -311,17 +331,30 @@ export const LoginPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Invisible Honeypot Spam Trap for Automated Bots */}
+              <input
+                type="text"
+                name="hp_website"
+                value={hpWebsite}
+                onChange={(e) => setHpWebsite(e.target.value)}
+                style={{ display: 'none', position: 'absolute', left: '-9999px' }}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+              />
+
+              {/* Primary Call to Action Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-tactile w-full py-2.5 px-4 rounded-lg bg-brand-800 hover:bg-brand-900 text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-xs"
+                className="btn-tactile w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-500/20 disabled:opacity-50 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {loading ? (
                   <span>Authenticating Credentials...</span>
                 ) : (
                   <>
-                    <span>Sign In to Portal</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>Sign In to MITRA Portal</span>
+                    <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
@@ -329,65 +362,82 @@ export const LoginPage: React.FC = () => {
               <div className="text-center pt-1">
                 <Link
                   to="/forgot-password"
-                  className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-brand-700 dark:hover:text-brand-300 font-medium transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-brand-600" />
+                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
                   <span>Forgot password? Login with Email OTP</span>
                 </Link>
               </div>
             </form>
 
-            {/* Quick Evaluation Demo Accounts */}
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 text-center">
-                1-Click Evaluation Accounts
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => fillQuickAccount('student1@college.edu', 'Student@123')}
-                  className="btn-tactile p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 hover:border-brand-500 text-left transition-colors"
-                >
-                  <div className="font-semibold text-xs flex items-center gap-1 text-slate-900 dark:text-white">
-                    <CheckCircle2 className="w-3 h-3 text-brand-600" />
-                    <span>Student 1</span>
-                  </div>
-                  <div className="text-[10px] text-slate-500 truncate font-mono">student1</div>
-                </button>
+            {/* Quick Evaluation Demo Accounts (Guarded strictly for Development Environment) */}
+            {import.meta.env.DEV && (
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    Dev Quick-Fill Credentials
+                  </p>
+                  <span className="text-[9px] font-mono text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800 font-semibold">
+                    DEV ONLY
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fillQuickAccount('student1@college.edu', 'Student@123')}
+                    className="btn-tactile p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 hover:border-blue-500 text-left transition-colors"
+                  >
+                    <div className="font-semibold text-xs flex items-center gap-1 text-slate-900 dark:text-white">
+                      <CheckCircle2 className="w-3 h-3 text-blue-600" />
+                      <span>Student 1</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 truncate font-mono">student1</div>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => fillQuickAccount('student2@college.edu', 'Student@123')}
-                  className="btn-tactile p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 hover:border-brand-500 text-left transition-colors"
-                >
-                  <div className="font-semibold text-xs flex items-center gap-1 text-slate-900 dark:text-white">
-                    <CheckCircle2 className="w-3 h-3 text-brand-600" />
-                    <span>Student 2</span>
-                  </div>
-                  <div className="text-[10px] text-slate-500 truncate font-mono">student2</div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => fillQuickAccount('student2@college.edu', 'Student@123')}
+                    className="btn-tactile p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 hover:border-blue-500 text-left transition-colors"
+                  >
+                    <div className="font-semibold text-xs flex items-center gap-1 text-slate-900 dark:text-white">
+                      <CheckCircle2 className="w-3 h-3 text-blue-600" />
+                      <span>Student 2</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 truncate font-mono">student2</div>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => fillQuickAccount('admin@iiitbh.ac.in', 'Admin@123')}
-                  className="btn-tactile p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 hover:border-brand-500 text-left transition-colors"
-                >
-                  <div className="font-semibold text-xs flex items-center gap-1 text-slate-900 dark:text-white">
-                    <Shield className="w-3 h-3 text-slate-700 dark:text-slate-300" />
-                    <span>Admin</span>
-                  </div>
-                  <div className="text-[10px] text-slate-500 truncate font-mono">admin</div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => fillQuickAccount('admin@iiitbh.ac.in', 'Admin@123')}
+                    className="btn-tactile p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 hover:border-blue-500 text-left transition-colors"
+                  >
+                    <div className="font-semibold text-xs flex items-center gap-1 text-slate-900 dark:text-white">
+                      <Shield className="w-3 h-3 text-slate-700 dark:text-slate-300" />
+                      <span>Admin</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 truncate font-mono">admin</div>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="text-center pt-2">
-              <p className="text-xs text-slate-500">
+            <div className="text-center pt-2 space-y-2">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 New student at IIIT Bhagalpur?{' '}
-                <Link to="/register" className="font-medium text-brand-700 dark:text-brand-300 hover:underline">
-                  Register with College Email
+                <Link to="/register" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                  Register with College Email &rarr;
                 </Link>
               </p>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
+                <Link to="/terms" className="hover:text-blue-600 dark:hover:text-blue-400 underline">
+                  Terms of Service
+                </Link>
+                <span>•</span>
+                <Link to="/privacy" className="hover:text-blue-600 dark:hover:text-blue-400 underline">
+                  Privacy Policy
+                </Link>
+              </div>
             </div>
           </div>
         </ScrollReveal>

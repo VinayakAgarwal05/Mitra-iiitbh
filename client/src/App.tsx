@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Layout } from './components/layout/Layout';
+import { CookieConsent } from './components/common/CookieConsent';
+import { trackPageView, initWebVitals } from './utils/analytics';
 
 // Code-splitting via React.lazy for optimized First Contentful Paint & minimal initial JS bundle
 const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
@@ -21,8 +23,10 @@ const StudentIssuesPage = lazy(() => import('./pages/StudentIssuesPage').then(m 
 const IssueDetailPage = lazy(() => import('./pages/IssueDetailPage').then(m => ({ default: m.IssueDetailPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then(m => ({ default: m.TermsPage })));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
 const VisionPage = lazy(() => import('./pages/VisionPage').then(m => ({ default: m.VisionPage })));
 const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 
 // Accessible, zero-CLS loading fallback skeleton
 const PageLoadingFallback: React.FC = () => (
@@ -73,23 +77,29 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
 
-// Automatically scroll window to top on route transitions
+// Automatically scroll window to top on route transitions & track pageview analytics
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    trackPageView(pathname, document.title);
   }, [pathname]);
 
   return null;
 };
 
 export const App: React.FC = () => {
+  useEffect(() => {
+    initWebVitals();
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>
         <BrowserRouter>
           <ScrollToTop />
+          <CookieConsent />
           <Suspense fallback={<PageLoadingFallback />}>
             <Routes>
               {/* Public Auth Routes */}
@@ -97,6 +107,10 @@ export const App: React.FC = () => {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+              {/* Public & Shareable Legal Information */}
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPolicyPage />} />
 
               {/* Protected Application Routes */}
               <Route
@@ -120,6 +134,7 @@ export const App: React.FC = () => {
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="vision" element={<VisionPage />} />
                 <Route path="terms" element={<TermsPage />} />
+                <Route path="privacy" element={<PrivacyPolicyPage />} />
 
                 {/* Admin Protected Dashboard */}
                 <Route
@@ -132,8 +147,8 @@ export const App: React.FC = () => {
                 />
               </Route>
 
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              {/* Custom Accessible 404 Page */}
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
         </BrowserRouter>

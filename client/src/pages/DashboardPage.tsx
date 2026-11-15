@@ -123,6 +123,7 @@ export const DashboardPage: React.FC = () => {
 
     fetchDashboardData();
     refreshUser();
+    document.title = 'Dashboard — IIIT Bhagalpur MITRA';
   }, []);
 
   const currentHour = new Date().getHours();

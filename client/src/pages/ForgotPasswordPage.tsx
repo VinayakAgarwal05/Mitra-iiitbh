@@ -50,6 +50,7 @@ export const ForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = 'Password Recovery & OTP Login — IIIT Bhagalpur MITRA';
     const timer = setInterval(() => {
       setSlideIdx((prev) => (prev + 1) % FORGOT_SLIDES.length);
     }, 6000);
